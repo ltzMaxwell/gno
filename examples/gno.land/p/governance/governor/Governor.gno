@@ -240,7 +240,7 @@ func (gvr *Governor) Propose(targets []std.Address, values []uint64, calldatas [
 	// sender := std.GetCallerAt(2)
 	sender := std.GetOrigCaller()
 	height := uint64(std.GetHeight())
-	if (gvr.getVotes(sender, height - 1) < gvr.proposalThreshold()){
+	if (gvr.GetVotes(sender, height - 1) < gvr.proposalThreshold()){
 		panic("GovernorCompatibilityBravo: proposer votes below proposal threshold")
 	}
 
@@ -396,7 +396,7 @@ func (gvr *Governor) _cancel(targets []std.Address, values []uint64, calldatas [
 /**
  * @dev See {IGovernor-getVotes}.
  */
-func (gvr *Governor) getVotes(account std.Address, blockNumber uint64) uint64{
+func (gvr *Governor) GetVotes(account std.Address, blockNumber uint64) uint64{
     return gvr.gv._getVotes(account, blockNumber, _defaultParams());
 }
 
@@ -501,8 +501,8 @@ func (gvr *Governor) RenderHome(proposalId string) string{
 	deadLine := gvr.proposalDeadline(proposalId)
 
 	str := ""
-	str += ufmt.Sprintf("* **Proposal state is**: %s\n", state.String())
-	str += ufmt.Sprintf("* **Proposal snapShot is**: %d\n", snapShot)
-	str += ufmt.Sprintf("* **Proposal deadLine is**: %d\n", deadLine)
+	str += ufmt.Sprintf("***Proposal state is***: %s\n", state.String())
+	str += ufmt.Sprintf("***Proposal snapShot is***: %d\n", snapShot)
+	str += ufmt.Sprintf("***Proposal deadLine is***: %d\n", deadLine)
 	return str
 }

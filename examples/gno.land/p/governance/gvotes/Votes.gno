@@ -69,7 +69,7 @@ func (v *Votes) delegates(account std.Address) std.Address{
 
 func (v *Votes) delegate(delegatee std.Address) {
 	//todo check caller
-	account := std.GetCallerAt(2)
+	account := std.GetOrigCaller()
 	v._delegate(account, delegatee);
 }
 
