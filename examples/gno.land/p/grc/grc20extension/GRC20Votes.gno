@@ -19,13 +19,17 @@ func NewGrc20Votes(name, symbol string, decimals uint) *Grc20Votes{
 }
 
 func (gv *Grc20Votes) _afterTokenTransfer(from std.Address, to std.Address, amount uint64){
-	//move voting power
 	gv.TransferVotingUnits(from, to, amount)
 }
 
 func (gv *Grc20Votes) MintTo(to std.Address, amount uint64){
+	// fmt.Printf("MintTo %s: \n", to)
     gv.Mint(to, amount);
 	//init total supply
-	//
 	gv._afterTokenTransfer(zeroAddress, to ,amount)
+}
+
+func (gv *Grc20Votes) TransferTo(from std.Address, to std.Address, amount uint64){
+	gv.Transfer(from, to, amount)
+	gv._afterTokenTransfer(from, to ,amount)
 }
