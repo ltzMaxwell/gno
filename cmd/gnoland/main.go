@@ -149,6 +149,7 @@ func makeGenesisDoc(pvPub crypto.PubKey) *bft.GenesisDoc {
 		"g1f977l6wxdh3qu60kzl75vx2wmzswu68l03r8su=10000gnot", // @catShaark #92
 		"g1644qje5rx6jsdqfkzmgnfcegx4dxkjh6rwqd69=10000gnot", // @MadafakAvril14th #91
 		"g1mzjajymvmtksdwh3wkrndwj6zls2awl9q83dh6=10000gnot", // @Vanlee #89
+		"g1uuuderyrfvleqmfcx52ynyds2c9wvq87a22yxz=10000gnot", // @0520
 		// NOTE: Thanks guys, no more keys through genesis this way though:
 		// going forward we will have a faucet so anyone can get
 		// tokens to pay the spam-prevention tx fee.
@@ -160,10 +161,17 @@ func makeGenesisDoc(pvPub crypto.PubKey) *bft.GenesisDoc {
 		"p/avl",
 		"p/grc/grc20",
 		"p/grc/grc20/impl",
+		"p/governance/checkpoints",
+		"p/governance/counters",
+		"p/governance/gvotes",
+		"p/governance/timers",
+		"p/grc/grc20extension",
+		"p/governance/governor",
 		"p/grc/grc721",
 		"p/maths",
 		"r/users",
 		"r/foo20",
+		"r/foo_governor",
 		"r/boards",
 		"r/banktest",
 	} {
