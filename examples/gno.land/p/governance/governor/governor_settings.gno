@@ -1,92 +1,76 @@
 package governor
 
-import "std"
-
-type GovernorSettings struct{
-	_votingDelay uint64
-    _votingPeriod uint64
-    _proposalThreshold uint64
+type GovernorSettings struct {
+	_votingDelay       uint64
+	_votingPeriod      uint64
+	_proposalThreshold uint64
 }
 
-func NewGovernorSettings(votingDelay uint64, votingPeriod uint64, proposalThreshold uint64) *GovernorSettings{
+func NewGovernorSettings(votingDelay uint64, votingPeriod uint64, proposalThreshold uint64) *GovernorSettings {
 	return &GovernorSettings{
-		_votingDelay: votingDelay,
-		_votingPeriod: 	votingPeriod,
+		_votingDelay:       votingDelay,
+		_votingPeriod:      votingPeriod,
 		_proposalThreshold: proposalThreshold,
 	}
 }
 
-type VotingDelaySetEvent struct{
+type VotingDelaySetEvent struct {
 	oldVotingDelay uint64
 	newVotingDelay uint64
 }
 
-type VotingPeriodSetEvent struct{
+type VotingPeriodSetEvent struct {
 	oldVotingPeriod uint64
 	newVotingPeriod uint64
 }
 
-type ProposalThresholdSetEvent struct{
+type ProposalThresholdSetEvent struct {
 	oldProposalThreshold uint64
 	newProposalThreshold uint64
 }
 
-/**
- * @dev See {IGovernor-votingDelay}.
- */
-func (gs *GovernorSettings) votingDelay() uint64{
-	return gs._votingDelay;
+// See {IGovernor-votingDelay}.
+func (gs *GovernorSettings) votingDelay() uint64 {
+	return gs._votingDelay
 }
 
-/**
- * @dev See {IGovernor-votingPeriod}.
- */
-func (gs *GovernorSettings) votingPeriod() uint64{
-	return gs._votingPeriod;
+// See {IGovernor-votingPeriod}.
+func (gs *GovernorSettings) votingPeriod() uint64 {
+	return gs._votingPeriod
 }
 
-/**
- * @dev See {Governor-proposalThreshold}.
- */
-func (gs *GovernorSettings) proposalThreshold() uint64{
-	return gs._proposalThreshold;
+// See {Governor-proposalThreshold}.
+func (gs *GovernorSettings) proposalThreshold() uint64 {
+	return gs._proposalThreshold
 }
 
-/**
- * @dev Update the voting delay. This operation can only be performed through a governance proposal.
- *
- * Emits a {VotingDelaySet} event.
- */
+// Update the voting delay. This operation can only be performed through a governance proposal.
+// Emits a {VotingDelaySet} event.
 
 //todo check only governance modifier
 func (gs *GovernorSettings) setVotingDelay(newVotingDelay uint64) {
 	// _setVotingDelay(newVotingDelay);
-	gs._votingDelay = newVotingDelay;
+	gs._votingDelay = newVotingDelay
 }
 
-/**
- * @dev Update the voting period. This operation can only be performed through a governance proposal.
- *
- * Emits a {VotingPeriodSet} event.
- */
+// Update the voting period. This operation can only be performed through a governance proposal.
+// Emits a {VotingPeriodSet} event.
 
 //modifier
-func (gs *GovernorSettings) setVotingPeriod(newVotingPeriod uint64){
+func (gs *GovernorSettings) setVotingPeriod(newVotingPeriod uint64) {
 	// _setVotingPeriod(newVotingPeriod);
 
 	// voting period must be at least one block long
-	if(newVotingPeriod <=0){
+	if newVotingPeriod <= 0 {
 		panic("GovernorSettings: voting period too low")
 	}
 	// emit VotingPeriodSet(_votingPeriod, newVotingPeriod);
-	gs._votingPeriod = newVotingPeriod;
+	gs._votingPeriod = newVotingPeriod
 }
 
 /**
- * @dev Update the proposal threshold. This operation can only be performed through a governance proposal.
- *
- * Emits a {ProposalThresholdSet} event.
- */
+// Update the proposal threshold. This operation can only be performed through a governance proposal.
+// Emits a {ProposalThresholdSet} event.
 
 //modifier
 func (gs *GovernorSettings) setProposalThreshold(newProposalThreshold uint64){
