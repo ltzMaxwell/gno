@@ -1,5 +1,7 @@
 package governor
 
+import 	"gno.land/p/grc/grc20extension"
+
 type GovernorVotesQuorumFraction struct {
 	_quorumNumerator uint64
 	// gvrv *GovernorVotes

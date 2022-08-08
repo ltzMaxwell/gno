@@ -84,17 +84,17 @@ func main() {
 // test1 votes is: 7000
 // test2 votes is: 3000
 // before voting----------------------------------
-// proposal RenderHome: * **Proposal state is**: Pending
-// * **Proposal snapShot is**: 123
-// * **Proposal deadLine is**: 128
+// proposal RenderHome: ***Proposal state is***: Pending
+// ***Proposal snapShot is***: 123
+// ***Proposal deadLine is***: 128
 //
 // voted----------------------------------
 // weight is:  7000
-// proposal RenderHome: * **Proposal state is**: Active
-// * **Proposal snapShot is**: 123
-// * **Proposal deadLine is**: 128
+// proposal RenderHome: ***Proposal state is***: Active
+// ***Proposal snapShot is***: 123
+// ***Proposal deadLine is***: 128
 //
 // after voting period ----------------------------------
-// proposal RenderHome: * **Proposal state is**: Succeeded
-// * **Proposal snapShot is**: 123
-// * **Proposal deadLine is**: 128
+// proposal RenderHome: ***Proposal state is***: Succeeded
+// ***Proposal snapShot is***: 123
+// ***Proposal deadLine is***: 128
