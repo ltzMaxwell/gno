@@ -59,7 +59,7 @@ type Governor struct {
 	gs        *GovernorSettings
 }
 
-func NewGovernor(g20v *grc20votes.Grc20Votes, votingDelay uint64, votingPeriod uint64, proposalThreshold uint64) *Governor {
+func NewGovernor(g20v *grc20votes.Grc20Votes, votingDelay int64, votingPeriod int64, proposalThreshold int64) *Governor {
 	return &Governor{
 		name:      "",
 		proposals: avl.NewMutTree(),
@@ -138,7 +138,7 @@ func (gvr *Governor) state(proposalId string) ProposalState {
 	}
 
 	//todo check conversion
-	height := uint64(std.GetHeight())
+	height := std.GetHeight()
 
 	if snapshot >= height {
 		return Pending
@@ -157,7 +157,7 @@ func (gvr *Governor) state(proposalId string) ProposalState {
 }
 
 // See {IGovernor-proposalSnapshot}.
-func (gvr *Governor) proposalSnapshot(proposalId string) uint64 {
+func (gvr *Governor) proposalSnapshot(proposalId string) int64 {
 	proposalI, found := gvr.proposals.Get(proposalId)
 	if !found {
 		//todo
@@ -168,7 +168,7 @@ func (gvr *Governor) proposalSnapshot(proposalId string) uint64 {
 }
 
 // See {IGovernor-proposalDeadline}.
-func (gvr *Governor) proposalDeadline(proposalId string) uint64 {
+func (gvr *Governor) proposalDeadline(proposalId string) int64 {
 	proposalI, found := gvr.proposals.Get(proposalId)
 	if !found {
 		//todo
@@ -216,10 +216,8 @@ func _defaultParams() []byte {
 	return ""
 }
 
-/**
- * @notice module:voting
- * @dev Returns weither `account` has cast a vote on `proposalId`.
- */
+// module:voting
+// Returns weither `account` has cast a vote on `proposalId`.
 // func hasVoted(proposalId uint64, account std.Address) bool{}
 
 // See {IGovernor-propose}.
@@ -227,7 +225,7 @@ func (gvr *Governor) Propose(targets []std.Address, values []uint64, calldatas [
 	//get caller
 	// sender := std.GetCallerAt(2)
 	sender := std.GetOrigCaller()
-	height := uint64(std.GetHeight())
+	height := std.GetHeight()
 	if gvr.GetVotes(sender, height-1) < gvr.proposalThreshold() {
 		panic("GovernorCompatibilityBravo: proposer votes below proposal threshold")
 	}
@@ -258,7 +256,7 @@ func (gvr *Governor) Propose(targets []std.Address, values []uint64, calldatas [
 		panic("Governor: proposal already exists")
 	}
 
-	snapshot := uint64(std.GetHeight()) + gvr.gs.votingDelay()
+	snapshot := std.GetHeight() + gvr.gs.votingDelay()
 	deadline := snapshot + gvr.gs.votingPeriod()
 
 	proposal.voteStart.SetDeadline(snapshot)
@@ -375,12 +373,12 @@ func (gvr *Governor) _cancel(targets []std.Address, values []uint64, calldatas [
 }
 
 // See {IGovernor-getVotes}.
-func (gvr *Governor) GetVotes(account std.Address, blockNumber uint64) uint64 {
+func (gvr *Governor) GetVotes(account std.Address, blockNumber int64) uint64 {
 	return gvr.gv._getVotes(account, blockNumber, _defaultParams())
 }
 
 // See {IGovernor-getVotesWithParams}.
-func (gvr *Governor) getVotesWithParams(account std.Address, blockNumber uint64, params []byte) uint64 {
+func (gvr *Governor) getVotesWithParams(account std.Address, blockNumber int64, params []byte) uint64 {
 	return gvr.gv._getVotes(account, blockNumber, params)
 }
 

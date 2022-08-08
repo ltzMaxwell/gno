@@ -24,7 +24,7 @@ func CastVote(proposalId string, support uint8)uint64{
 	return weight
 }
 
-func GetVotes(account std.Address, blockNumber uint64)uint64{
+func GetVotes(account std.Address, blockNumber int64)uint64{
 	return gvr.GetVotes(account, blockNumber)
 }
 

@@ -3,12 +3,12 @@ package checkpoints
 import "std"
 
 type Checkpoint struct {
-	_blockNumber uint64
-	_value       uint64
+	blockNumber int64
+	value       uint64
 }
 
 type History struct {
-	_checkpoints []Checkpoint
+	checkpoints []Checkpoint
 }
 
 func NewHistory() *History {
@@ -17,28 +17,28 @@ func NewHistory() *History {
 
 // Returns the value in the latest checkpoint, or zero if there are no checkpoints.
 func (history *History) Latest() uint64 {
-	pos := len(history._checkpoints)
+	pos := len(history.checkpoints)
 	if pos == 0 {
 		return 0
 	} else {
-		return history._checkpoints[pos-1]._value
+		return history.checkpoints[pos-1].value
 	}
 }
 
 // Returns the value at a given block number. If a checkpoint is not available at that block, the closest one
 // before it is returned, or zero otherwise.
-func (history *History) GetAtBlock(blockNumber uint64) uint64 {
+func (history *History) GetAtBlock(blockNumber int64) uint64 {
 	// require(blockNumber < block.number, "Checkpoints: block not yet mined");
 	//todo how to get block.number
 	//todo
-	var high uint64
-	var low uint64
+	var high int64
+	var low int64
 
-	high = uint64(len(history._checkpoints))
+	high = int64(len(history.checkpoints))
 	low = 0
 	for low < high {
 		mid := _average(low, high)
-		if history._checkpoints[mid]._blockNumber > blockNumber {
+		if history.checkpoints[mid].blockNumber > blockNumber {
 			high = mid
 		} else {
 			low = mid + 1
@@ -47,24 +47,24 @@ func (history *History) GetAtBlock(blockNumber uint64) uint64 {
 	if high == 0 {
 		return 0
 	}
-	return history._checkpoints[high-1]._value
+	return history.checkpoints[high-1].value
 }
 
 // (a + b) / 2 can overflow.
-func _average(a, b uint64) uint64 {
+func _average(a, b int64) int64 {
 	return (a & b) + (a^b)/2
 }
 
 // Pushes a value onto a History so that it is stored as the checkpoint for the current block.
 // Returns previous value and new value.
 func (history *History) Push(value uint64) (uint64, uint64) {
-	pos := len(history._checkpoints)
+	pos := len(history.checkpoints)
 	old := history.Latest()
-	height := uint64(std.GetHeight())
-	if pos > 0 && history._checkpoints[pos-1]._blockNumber == height {
-		history._checkpoints[pos-1]._value = value
+	height := std.GetHeight()
+	if pos > 0 && history.checkpoints[pos-1].blockNumber == height {
+		history.checkpoints[pos-1].value = value
 	} else {
-		history._checkpoints = append(history._checkpoints, Checkpoint{_blockNumber: height, _value: value})
+		history.checkpoints = append(history.checkpoints, Checkpoint{blockNumber: height, value: value})
 	}
 	return old, value
 }

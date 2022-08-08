@@ -41,7 +41,7 @@ func (timer *Timestamp) isStarted() bool {
 // }
 
 type BlockNumber struct {
-	_deadline uint64
+	_deadline int64
 }
 
 func NewBlockNumber() *BlockNumber {
@@ -50,11 +50,11 @@ func NewBlockNumber() *BlockNumber {
 	}
 }
 
-func (timer *BlockNumber) GetDeadline() uint64 {
+func (timer *BlockNumber) GetDeadline() int64 {
 	return timer._deadline
 }
 
-func (timer *BlockNumber) SetDeadline(timestamp uint64) {
+func (timer *BlockNumber) SetDeadline(timestamp int64) {
 	timer._deadline = timestamp
 }
 
@@ -71,11 +71,11 @@ func (timer *BlockNumber) isStarted() bool {
 }
 
 func (timer *BlockNumber) isPending() bool {
-	height := uint64(std.GetHeight())
+	height := std.GetHeight()
 	return timer._deadline > height
 }
 
 func (timer *BlockNumber) isExpired() bool {
-	height := uint64(std.GetHeight())
+	height := std.GetHeight()
 	return timer.isStarted() && timer._deadline <= height
 }

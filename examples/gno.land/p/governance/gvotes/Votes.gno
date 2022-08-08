@@ -2,7 +2,6 @@ package gvotes
 
 import (
 	"std"
-
 	"gno.land/p/avl"
 	"gno.land/p/governance/checkpoints"
 	"gno.land/p/governance/counters"
@@ -12,10 +11,10 @@ import (
 const zeroAddress = std.Address("")
 
 type Votes struct {
-	delegation          *avl.MutTree //address => address
-	delegateCheckpoints *avl.MutTree //address => checkpoints.History
+	delegation          *avl.MutTree // address => address
+	delegateCheckpoints *avl.MutTree // address => checkpoints.History
 	totalCheckpoints    *checkpoints.History
-	nonces              *avl.MutTree //address => counters.Counter
+	nonces              *avl.MutTree // address => counters.Counter
 }
 
 func NewVotes() *Votes {
@@ -37,7 +36,7 @@ func (v *Votes) GetVotes(account std.Address) uint64 {
 	return history.Latest()
 }
 
-func (v *Votes) GetPastVotes(account std.Address, blockNumber uint64) uint64 {
+func (v *Votes) GetPastVotes(account std.Address, blockNumber int64) uint64 {
 	history, found := v.delegateCheckpoints.Get(account.String())
 	if !found {
 		return 0
@@ -45,16 +44,15 @@ func (v *Votes) GetPastVotes(account std.Address, blockNumber uint64) uint64 {
 	return history.(*checkpoints.History).GetAtBlock(blockNumber)
 }
 
-func (v *Votes) GetPastTotalSupply(blockNumber uint64) uint64 {
-	//todo check conversion
-	height := uint64(std.GetHeight())
+func (v *Votes) GetPastTotalSupply(blockNumber int64) uint64 {
+	height := std.GetHeight()
 	if blockNumber >= height {
 		panic("Votes: block not yet mined")
 	}
 	return v.totalCheckpoints.GetAtBlock(blockNumber)
 }
 
-func (v *Votes) _getTotalSupply() uint64 {
+func (v *Votes) getTotalSupply() uint64 {
 	return v.totalCheckpoints.Latest()
 }
 
@@ -68,34 +66,41 @@ func (v *Votes) delegates(account std.Address) std.Address {
 }
 
 func (v *Votes) delegate(delegatee std.Address) {
-	//todo check caller
 	account := std.GetOrigCaller()
-	v._delegate(account, delegatee)
-}
+	checkIsValidAddress(account)
 
-func (v *Votes) _delegate(account std.Address, delegatee std.Address) {
 	res, _ := v.delegation.Get(account.String())
 	v.delegation.Set(account.String(), delegatee)
 
 	oldDelegate := res.(std.Address)
-	//how to emit event
-	// emit DelegateChanged(account, oldDelegate, delegatee);
-	v._moveDelegateVotes(oldDelegate, delegatee, _getVotingUnits(account))
+	// TODO: emit DelegateChanged event
+	v.moveDelegateVotes(oldDelegate, delegatee, getVotingUnits(account))
+
+	// v.delegate(account, delegatee)
 }
+
+// func delegate(account std.Address, delegatee std.Address) {
+// 	res, _ := v.delegation.Get(account.String())
+// 	v.delegation.Set(account.String(), delegatee)
+
+// 	oldDelegate := res.(std.Address)
+// 	// TODO: emit DelegateChanged event
+// 	v.moveDelegateVotes(oldDelegate, delegatee, _getVotingUnits(account))
+// }
 
 // Transfers, mints, or burns voting units. To register a mint, `from` should be zero. To register a burn, `to`
 // should be zero. Total supply of voting units will be adjusted with mints and burns.
 func (v *Votes) TransferVotingUnits(from std.Address, to std.Address, amount uint64) {
 	if from == zeroAddress {
-		v.totalCheckpoints.PushWithOp(_add, amount)
+		v.totalCheckpoints.PushWithOp(add, amount)
 	}
 	if to == zeroAddress {
-		v.totalCheckpoints.PushWithOp(_subtract, amount)
+		v.totalCheckpoints.PushWithOp(subtract, amount)
 	}
-	v._moveDelegateVotes(v.delegates(from), v.delegates(to), amount)
+	v.moveDelegateVotes(v.delegates(from), v.delegates(to), amount)
 }
 
-func (v *Votes) _moveDelegateVotes(from std.Address, to std.Address, amount uint64) {
+func (v *Votes) moveDelegateVotes(from std.Address, to std.Address, amount uint64) {
 	if from != to && amount > 0 {
 		// checkIsValidAddress(from)
 		// checkIsValidAddress(to)
@@ -103,43 +108,44 @@ func (v *Votes) _moveDelegateVotes(from std.Address, to std.Address, amount uint
 			res, exsists := v.delegateCheckpoints.Get(from.String())
 			if !exsists {
 				history := &checkpoints.History{}
-				// TODO: not used vars
-				oldValue, newValue := history.PushWithOp(_subtract, amount)
+				oldValue, newValue := history.PushWithOp(subtract, amount)
+				println(oldValue, newValue)
 				v.delegateCheckpoints.Set(from.String(), history)
 				return
 			}
 			dCheckPoints := res.(*checkpoints.History)
-			oldValue, newValue := dCheckPoints.PushWithOp(_subtract, amount)
+			oldValue, newValue := dCheckPoints.PushWithOp(subtract, amount)
+			println(oldValue, newValue)
 		}
-		//todo
-		// emit DelegateVotesChanged(from, oldValue, newValue);
+		// TODO: emit DelegateVotesChanged(from, oldValue, newValue);
 		if to != zeroAddress {
 			res, exists := v.delegateCheckpoints.Get(to.String())
 			if !exists {
 				history := &checkpoints.History{}
-				oldValue, newValue := history.PushWithOp(_add, amount)
+				oldValue, newValue := history.PushWithOp(add, amount)
+				println(oldValue, newValue)
 				v.delegateCheckpoints.Set(to.String(), history)
 				return
 			}
 			history := res.(*checkpoints.History)
-			oldValue, newValue := history.PushWithOp(_add, amount)
+			oldValue, newValue := history.PushWithOp(add, amount)
+			println(oldValue, newValue)
 		}
-		//todo
-		// emit DelegateVotesChanged(to, oldValue, newValue);
+		// TODO : emit DelegateVotesChanged(to, oldValue, newValue);
 	}
 }
 
-func _add(a uint64, b uint64) uint64 {
+func add(a uint64, b uint64) uint64 {
 	return a + b
 }
 
-func _subtract(a uint64, b uint64) uint64 {
+func subtract(a uint64, b uint64) uint64 {
 	return a - b
 }
 
 // Consumes a nonce.
 // Returns the current value and increments nonce.
-func (v *Votes) _useNonce(owner std.Address) uint64 {
+func (v *Votes) useNonce(owner std.Address) uint64 {
 	res, found := v.nonces.Get(owner.String())
 	if !found {
 		return 0
@@ -152,7 +158,7 @@ func (v *Votes) _useNonce(owner std.Address) uint64 {
 }
 
 // Returns an address nonce.
-func (v *Votes) _getNonce(owner std.Address) uint64 {
+func (v *Votes) getNonce(owner std.Address) uint64 {
 	res, found := v.nonces.Get(owner.String())
 	if !found {
 		return 0
@@ -162,7 +168,7 @@ func (v *Votes) _getNonce(owner std.Address) uint64 {
 }
 
 // Must return the voting units held by an account.
-func _getVotingUnits(std.Address) uint64 {
+func getVotingUnits(std.Address) uint64 {
 	//should return balances[account]
 }
 
@@ -173,7 +179,7 @@ func checkIsValidAddress(addr std.Address) {
 }
 
 func (v *Votes) RenderHome(account std.Address) string {
-	totalSupply := v._getTotalSupply()
+	totalSupply := v.getTotalSupply()
 	votes := v.GetVotes(account)
 	delegatee := v.delegates(account)
 	str := ""

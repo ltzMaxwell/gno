@@ -33,7 +33,7 @@ func main() {
 	println("balance of test2 is :", foo_governor.BalanceOf(test2))
 
 	//getVote
-	height := uint64(std.GetHeight())
+	height := std.GetHeight()
 	println("height is:", height)
 	votes_test1 := foo_governor.GetVotes(test1, height)
 	println("test1 votes is:", votes_test1)
@@ -77,7 +77,10 @@ func main() {
 // test3: g1w3jhxapnta047h6lta047h6lta047h6lzfhfxt
 // ============================
 // mint
+// 0 10000
 // total supply: 10000
+// 10000 7000
+// 0 3000
 // balance of test1 is : 7000
 // balance of test2 is : 3000
 // height is: 123
