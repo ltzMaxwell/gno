@@ -7,14 +7,14 @@ type IVotes interface {
 	getVotes(account std.Address) uint64
 
 	// Returns the amount of votes that `account` had at the end of a past block (`blockNumber`).
-	getPastVotes(account std.Address, blockNumber uint32) uint64
+	getPastVotes(account std.Address, blockNumber int64) uint64
 
 	// Returns the total supply of votes available at the end of a past block (`blockNumber`).
 	
 	// NOTE: This value is the sum of all available votes, which is not necessarily the sum of all delegated votes.
 	// Votes that have not been delegated are still part of total supply, even though they would not participate in a
 	// vote.
-	getPastTotalSupply(blockNumber uint32) uint64
+	getPastTotalSupply(blockNumber int64) uint64
 
 	// Returns the delegate that `account` has chosen.
 	delegates(account std.Address) std.Address

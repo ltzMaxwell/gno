@@ -36,7 +36,7 @@ func (gvqf *GovernorVotesQuorumFraction) quorumDenominator() uint64 {
 }
 
 // Returns the quorum for a block number, in terms of number of votes: `supply * numerator / denominator`.
-func (gvqf *GovernorVotesQuorumFraction) quorum(blockNumber uint64) uint64 {
+func (gvqf *GovernorVotesQuorumFraction) quorum(blockNumber int64) uint64 {
 	return (gvqf._g20v.GetPastTotalSupply(blockNumber) * gvqf.quorumNumerator()) / gvqf.quorumDenominator()
 }
 

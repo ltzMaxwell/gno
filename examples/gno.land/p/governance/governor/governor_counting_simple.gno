@@ -63,7 +63,7 @@ func (gcs *GovernorCountingSimple) proposalVotes(proposalId string) (againstVote
 }
 
 // See {Governor-_quorumReached}.
-func (gcs *GovernorCountingSimple) _quorumReached(proposalId string, snapshot uint64) bool {
+func (gcs *GovernorCountingSimple) _quorumReached(proposalId string, snapshot int64) bool {
 	proposalVoteI, exists := gcs._proposalVotes.Get(proposalId)
 	if !exists {
 		panic("GCS: proposal not exist")

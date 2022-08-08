@@ -2,7 +2,6 @@ package grc20votes
 
 import (
 	"std"
-
 	votes "gno.land/p/governance/gvotes"
 	grc20 "gno.land/p/grc/grc20/impl"
 )
@@ -21,18 +20,16 @@ func NewGrc20Votes(name, symbol string, decimals uint) *Grc20Votes {
 	}
 }
 
-func (gv *Grc20Votes) _afterTokenTransfer(from std.Address, to std.Address, amount uint64) {
+func (gv *Grc20Votes) afterTokenTransfer(from std.Address, to std.Address, amount uint64) {
 	gv.TransferVotingUnits(from, to, amount)
 }
 
 func (gv *Grc20Votes) MintTo(to std.Address, amount uint64) {
-	// fmt.Printf("MintTo %s: \n", to)
 	gv.Mint(to, amount)
-	//init total supply
-	gv._afterTokenTransfer(zeroAddress, to, amount)
+	gv.afterTokenTransfer(zeroAddress, to, amount)
 }
 
 func (gv *Grc20Votes) TransferTo(from std.Address, to std.Address, amount uint64) {
 	gv.Transfer(from, to, amount)
-	gv._afterTokenTransfer(from, to, amount)
+	gv.afterTokenTransfer(from, to, amount)
 }
