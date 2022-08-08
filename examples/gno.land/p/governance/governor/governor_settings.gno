@@ -1,5 +1,7 @@
 package governor
 
+import 	"gno.land/p/grc/grc20extension"
+
 type GovernorSettings struct {
 	_votingDelay       uint64
 	_votingPeriod      uint64

@@ -7,7 +7,7 @@ type Timestamp struct {
 }
 
 func NewTimestamp() *Timestamp {
-	return &Timestamp{
+	return &Timestamp {
 		_deadline: 0,
 	}
 }

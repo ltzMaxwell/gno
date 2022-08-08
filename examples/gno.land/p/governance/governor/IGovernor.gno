@@ -1,6 +1,7 @@
 package governor
 
 import "std"
+import "gno.land/p/grc/grc20extension"
 
 type ProposalCreatedEvent struct {
 	proposalId  uint64

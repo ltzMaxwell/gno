@@ -2,10 +2,10 @@ package governor
 
 import (
 	"std"
-
 	"gno.land/p/avl"
 	"gno.land/p/governance/timers"
 	"gno.land/p/ufmt"
+	"gno.land/p/grc/grc20extension"
 )
 
 type ProposalState int

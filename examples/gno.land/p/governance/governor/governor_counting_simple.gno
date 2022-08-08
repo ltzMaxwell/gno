@@ -2,8 +2,8 @@ package governor
 
 import (
 	"std"
-
 	"gno.land/p/avl"
+	"gno.land/p/grc/grc20extension"
 )
 
 type VoteType int

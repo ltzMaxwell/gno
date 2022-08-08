@@ -1,6 +1,7 @@
 package governor
 
 import "std"
+import "gno.land/p/grc/grc20extension"
 
 type GovernorVotes struct {
 	//todo shoud be grc20Vote
