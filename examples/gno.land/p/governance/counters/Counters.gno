@@ -1,26 +1,25 @@
 package counters
 
 type Counter struct {
-	_value uint64
+	value uint64
 }
 
 func (counter *Counter) Current() uint64 {
-	return counter._value
+	return counter.value
 }
 
 func (counter *Counter) Increment() {
-	counter._value += 1
+	counter.value += 1
 }
 
 func (counter *Counter) Decrement() {
-	value := counter._value
+	value := counter.value
 	if value <= 0 {
 		panic("Counter: decrement overflow")
-		// TODO: unreachable code
-		counter._value = value - 1
 	}
+	counter.value = value - 1
 }
 
 func (counter *Counter) Reset() {
-	counter._value = 0
+	counter.value = 0
 }

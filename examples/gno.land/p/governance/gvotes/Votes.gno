@@ -59,34 +59,36 @@ func (v *Votes) getTotalSupply() uint64 {
 func (v *Votes) delegates(account std.Address) std.Address {
 	delegatee, found := v.delegation.Get(account.String())
 	if !found {
-		//todo, return self or return error?
+		// NOTE: delegate to self by default
 		return account
 	}
 	return delegatee.(std.Address)
 }
 
-func (v *Votes) delegate(delegatee std.Address) {
+// Delegate all of `account`'s voting units to `delegatee`.
+func (v *Votes) Delegate(delegatee std.Address) {
 	account := std.GetOrigCaller()
 	checkIsValidAddress(account)
 
-	res, _ := v.delegation.Get(account.String())
-	v.delegation.Set(account.String(), delegatee)
+	if v.GetVotes(account) > 0 {
+		var oldDelegate std.Address
 
-	oldDelegate := res.(std.Address)
-	// TODO: emit DelegateChanged event
-	v.moveDelegateVotes(oldDelegate, delegatee, getVotingUnits(account))
+	    res, found := v.delegation.Get(account.String())
+	    if !found {
+		    oldDelegate = account
+	    }else {
+		    oldDelegate = res.(std.Address)
+	    }
 
-	// v.delegate(account, delegatee)
+	    // set delegation
+	    v.delegation.Set(account.String(), delegatee)
+
+	    v.moveDelegateVotes(oldDelegate, delegatee, v.GetVotes(account))
+	    // TODO: emit DelegateChanged event
+	}else {
+		panic("no voting units to delegate")
+	}
 }
-
-// func delegate(account std.Address, delegatee std.Address) {
-// 	res, _ := v.delegation.Get(account.String())
-// 	v.delegation.Set(account.String(), delegatee)
-
-// 	oldDelegate := res.(std.Address)
-// 	// TODO: emit DelegateChanged event
-// 	v.moveDelegateVotes(oldDelegate, delegatee, _getVotingUnits(account))
-// }
 
 // Transfers, mints, or burns voting units. To register a mint, `from` should be zero. To register a burn, `to`
 // should be zero. Total supply of voting units will be adjusted with mints and burns.
@@ -100,38 +102,44 @@ func (v *Votes) TransferVotingUnits(from std.Address, to std.Address, amount uin
 	v.moveDelegateVotes(v.delegates(from), v.delegates(to), amount)
 }
 
+// Moves delegated votes from one delegate to another.
 func (v *Votes) moveDelegateVotes(from std.Address, to std.Address, amount uint64) {
 	if from != to && amount > 0 {
+		// NOTE: could delegate from zero address, in mint
 		// checkIsValidAddress(from)
-		// checkIsValidAddress(to)
+		// should not delegate to zero address
+		checkIsValidAddress(to)
+		// substract
 		if from != zeroAddress {
-			res, exsists := v.delegateCheckpoints.Get(from.String())
-			if !exsists {
+			res, exists := v.delegateCheckpoints.Get(from.String())
+			if !exists {
 				history := &checkpoints.History{}
 				oldValue, newValue := history.PushWithOp(subtract, amount)
-				println(oldValue, newValue)
+				// println(oldValue, newValue)
 				v.delegateCheckpoints.Set(from.String(), history)
-				return
+			}else {
+				dCheckPoints := res.(*checkpoints.History)
+				// TODO: check amount first?
+				oldValue, newValue := dCheckPoints.PushWithOp(subtract, amount)
+				// println(oldValue, newValue)
 			}
-			dCheckPoints := res.(*checkpoints.History)
-			oldValue, newValue := dCheckPoints.PushWithOp(subtract, amount)
-			println(oldValue, newValue)
+			// TODO: emit DelegateVotesChanged(from, oldValue, newValue);
 		}
-		// TODO: emit DelegateVotesChanged(from, oldValue, newValue);
+		// add
 		if to != zeroAddress {
 			res, exists := v.delegateCheckpoints.Get(to.String())
 			if !exists {
 				history := &checkpoints.History{}
 				oldValue, newValue := history.PushWithOp(add, amount)
-				println(oldValue, newValue)
+				// println(oldValue, newValue)
 				v.delegateCheckpoints.Set(to.String(), history)
-				return
+			}else {
+			    history := res.(*checkpoints.History)
+			    oldValue, newValue := history.PushWithOp(add, amount)
+			    // println(oldValue, newValue)
 			}
-			history := res.(*checkpoints.History)
-			oldValue, newValue := history.PushWithOp(add, amount)
-			println(oldValue, newValue)
+			// TODO : emit DelegateVotesChanged(to, oldValue, newValue)
 		}
-		// TODO : emit DelegateVotesChanged(to, oldValue, newValue);
 	}
 }
 
@@ -140,6 +148,10 @@ func add(a uint64, b uint64) uint64 {
 }
 
 func subtract(a uint64, b uint64) uint64 {
+	// panic if?
+	// if a < b {
+	// 	panic("not enough amount to delegate")
+	// }
 	return a - b
 }
 
@@ -168,8 +180,9 @@ func (v *Votes) getNonce(owner std.Address) uint64 {
 }
 
 // Must return the voting units held by an account.
-func getVotingUnits(std.Address) uint64 {
+func getVotingUnits(account std.Address) uint64 {
 	//should return balances[account]
+	return 5
 }
 
 func checkIsValidAddress(addr std.Address) {

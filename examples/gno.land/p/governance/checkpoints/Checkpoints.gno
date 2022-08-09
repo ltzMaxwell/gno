@@ -28,9 +28,10 @@ func (history *History) Latest() uint64 {
 // Returns the value at a given block number. If a checkpoint is not available at that block, the closest one
 // before it is returned, or zero otherwise.
 func (history *History) GetAtBlock(blockNumber int64) uint64 {
-	// require(blockNumber < block.number, "Checkpoints: block not yet mined");
-	//todo how to get block.number
-	//todo
+	height := std.GetHeight()
+	if blockNumber >= height {
+		panic("Checkpoints: block not yet mined")
+	}
 	var high int64
 	var low int64
 
@@ -61,6 +62,7 @@ func (history *History) Push(value uint64) (uint64, uint64) {
 	pos := len(history.checkpoints)
 	old := history.Latest()
 	height := std.GetHeight()
+	// same block, update
 	if pos > 0 && history.checkpoints[pos-1].blockNumber == height {
 		history.checkpoints[pos-1].value = value
 	} else {
@@ -72,7 +74,6 @@ func (history *History) Push(value uint64) (uint64, uint64) {
 // Pushes a value onto a History, by updating the latest value using binary operation `op`. The new value will
 // be set to `op(latest, delta)`.
 // Returns previous value and new value.
-
 func (history *History) PushWithOp(op func(uint64, uint64) uint64, delta uint64) (uint64, uint64) {
 	return history.Push(op(history.Latest(), delta))
 }
