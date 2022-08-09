@@ -13,7 +13,7 @@ var gvr *governor.Governor
 
 func init() {
 	g20v = grc20votes.NewGrc20Votes("gov", "GOV", 10)
-	gvr = governor.NewGovernor(g20v, 0, 5, 0)
+	gvr = governor.NewGovernor("test_governor", g20v, 0, 5, 0)
 }
 
 func Propose(targets []std.Address, values []uint64, calldatas []byte, description string) string {
@@ -31,10 +31,7 @@ func GetVotes(account std.Address, blockNumber int64) uint64 {
 }
 
 func Mint(to std.Address, amount uint64) {
-	// ufmt.Sprintf("gv is: %+v", grc20Votes)
 	g20v.MintTo(to, amount)
-	// ufmt.Sprintf("%s", grc20Votes.Token.GetName())
-	// gv.Token.RenderHome()
 }
 
 func TotalSupply() uint64 {
@@ -50,6 +47,5 @@ func BalanceOf(owner std.Address) uint64 {
 }
 
 func RenderHome() string {
-	// return g20v.Votes.RenderHome("g1uuuderyrfvleqmfcx52ynyds2c9wvq87a22yxz")
 	return gvr.RenderHome("test")
 }

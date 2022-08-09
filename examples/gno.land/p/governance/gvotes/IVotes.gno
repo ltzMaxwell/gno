@@ -24,14 +24,14 @@ type IVotes interface {
 }
 
 // Emitted when an account changes their delegate.
-type DelegeteChangedEvent struct {
+type DelegateChangedEvent struct {
 	delegator    std.Address
 	fromDelegate std.Address
 	toDelegate   std.Address
 }
 
 // Emitted when a token transfer or delegate change results in changes to a delegate's number of votes.
-type DelegeteVotesChangedEvent struct {
+type DelegateVotesChangedEvent struct {
 	delegate        std.Address
 	previousBalance uint64
 	newBalance      uint64
