@@ -1,6 +1,7 @@
 package checkpoints
 
 import "std"
+import "strconv"
 
 type Checkpoint struct {
 	blockNumber int64
@@ -30,7 +31,7 @@ func (history *History) Latest() uint64 {
 func (history *History) GetAtBlock(blockNumber int64) uint64 {
 	height := std.GetHeight()
 	if blockNumber >= height {
-		panic("Checkpoints: block not yet mined")
+		panic("Checkpoints: block not yet mined:" + strconv.FormatInt(blockNumber, 10) + ":" + strconv.FormatInt(height, 10))
 	}
 	var high int64
 	var low int64

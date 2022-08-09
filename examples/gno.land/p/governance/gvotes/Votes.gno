@@ -105,40 +105,37 @@ func (v *Votes) TransferVotingUnits(from std.Address, to std.Address, amount uin
 // Moves delegated votes from one delegate to another.
 func (v *Votes) moveDelegateVotes(from std.Address, to std.Address, amount uint64) {
 	if from != to && amount > 0 {
-		// NOTE: could delegate from zero address, in mint
-		// checkIsValidAddress(from)
+		// NOTE: could delegate from zero address while minting
 		// should not delegate to zero address
 		checkIsValidAddress(to)
-		// substract
+		// subtract
 		if from != zeroAddress {
+			var oldValue, newValue uint64	
 			res, exists := v.delegateCheckpoints.Get(from.String())
 			if !exists {
 				history := &checkpoints.History{}
-				oldValue, newValue := history.PushWithOp(subtract, amount)
-				// println(oldValue, newValue)
+				oldValue, newValue = history.PushWithOp(subtract, amount)
 				v.delegateCheckpoints.Set(from.String(), history)
 			}else {
 				dCheckPoints := res.(*checkpoints.History)
-				// TODO: check amount first?
-				oldValue, newValue := dCheckPoints.PushWithOp(subtract, amount)
-				// println(oldValue, newValue)
+				oldValue, newValue = dCheckPoints.PushWithOp(subtract, amount)
 			}
-			// TODO: emit DelegateVotesChanged(from, oldValue, newValue);
+			emit(&DelegateVotesChangedEvent{from, oldValue, newValue})
+
 		}
 		// add
 		if to != zeroAddress {
+			var oldValue, newValue uint64	
 			res, exists := v.delegateCheckpoints.Get(to.String())
 			if !exists {
 				history := &checkpoints.History{}
-				oldValue, newValue := history.PushWithOp(add, amount)
-				// println(oldValue, newValue)
+				oldValue, newValue = history.PushWithOp(add, amount)
 				v.delegateCheckpoints.Set(to.String(), history)
 			}else {
 			    history := res.(*checkpoints.History)
-			    oldValue, newValue := history.PushWithOp(add, amount)
-			    // println(oldValue, newValue)
+			    oldValue, newValue = history.PushWithOp(add, amount)
 			}
-			// TODO : emit DelegateVotesChanged(to, oldValue, newValue)
+			emit(&DelegateVotesChangedEvent{to, oldValue, newValue})
 		}
 	}
 }
@@ -148,10 +145,6 @@ func add(a uint64, b uint64) uint64 {
 }
 
 func subtract(a uint64, b uint64) uint64 {
-	// panic if?
-	// if a < b {
-	// 	panic("not enough amount to delegate")
-	// }
 	return a - b
 }
 
@@ -200,4 +193,9 @@ func (v *Votes) RenderHome(account std.Address) string {
 	str += ufmt.Sprintf("* **votes of %s is**: %d\n", account.String(), votes)
 	str += ufmt.Sprintf("* **delegatee of %s is**: %s\n", account.String(), delegatee.String())
 	return str
+}
+
+func emit(event interface{}) {
+	// TODO: should we do something there?
+	// noop
 }

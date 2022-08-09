@@ -22,23 +22,23 @@ type ProposalVote struct {
 }
 
 type GovernorCountingSimple struct {
-	_proposalVotes *avl.MutTree //proposalId => proposalVote
+	proposalVotes  *avl.MutTree //proposalId => proposalVote
 	gvqf           *GovernorVotesQuorumFraction
 }
 
 func NewGovernorCountingSimple(g20v *grc20votes.Grc20Votes) *GovernorCountingSimple {
 	return &GovernorCountingSimple{
 		//todo
-		_proposalVotes: avl.NewMutTree(),
+		proposalVotes:  avl.NewMutTree(),
 		gvqf:           NewGovernorVotesQuorumFraction(50, g20v),
 	}
 }
 
 // See {IGovernor-hasVoted}.
 func (gcs *GovernorCountingSimple) hasVoted(proposalId string, account std.Address) bool {
-	proposalVoteI, found := gcs._proposalVotes.Get(proposalId)
+	proposalVoteI, found := gcs.proposalVotes.Get(proposalId)
 	if !found {
-		// return false
+		// return false?
 		panic("GCS: proposal not exist")
 	}
 
@@ -52,8 +52,8 @@ func (gcs *GovernorCountingSimple) hasVoted(proposalId string, account std.Addre
 }
 
 // Accessor to the internal vote counts.
-func (gcs *GovernorCountingSimple) proposalVotes(proposalId string) (againstVotes uint64, forVotes uint64, abstainVotes uint64) {
-	proposalVoteI, found := gcs._proposalVotes.Get(proposalId)
+func (gcs *GovernorCountingSimple) getProposalVotes(proposalId string) (againstVotes uint64, forVotes uint64, abstainVotes uint64) {
+	proposalVoteI, found := gcs.proposalVotes.Get(proposalId)
 	if !found {
 		//  return 0, 0, 0
 		panic("GCS: proposal not exist")
@@ -63,8 +63,8 @@ func (gcs *GovernorCountingSimple) proposalVotes(proposalId string) (againstVote
 }
 
 // See {Governor-_quorumReached}.
-func (gcs *GovernorCountingSimple) _quorumReached(proposalId string, snapshot int64) bool {
-	proposalVoteI, exists := gcs._proposalVotes.Get(proposalId)
+func (gcs *GovernorCountingSimple) quorumReached(proposalId string, snapshot int64) bool {
+	proposalVoteI, exists := gcs.proposalVotes.Get(proposalId)
 	if !exists {
 		panic("GCS: proposal not exist")
 	}
@@ -74,8 +74,8 @@ func (gcs *GovernorCountingSimple) _quorumReached(proposalId string, snapshot in
 }
 
 // See {Governor-_voteSucceeded}. In this module, the forVotes must be strictly over the againstVotes.
-func (gcs *GovernorCountingSimple) _voteSucceeded(proposalId string) bool {
-	proposalVoteI, found := gcs._proposalVotes.Get(proposalId)
+func (gcs *GovernorCountingSimple) voteSucceeded(proposalId string) bool {
+	proposalVoteI, found := gcs.proposalVotes.Get(proposalId)
 	if !found {
 		// return false
 		panic("GCS: proposal not exist")
@@ -85,16 +85,16 @@ func (gcs *GovernorCountingSimple) _voteSucceeded(proposalId string) bool {
 }
 
 // See {Governor-_countVote}. In this module, the support follows the `VoteType` enum (from Governor Bravo).
-func (gcs *GovernorCountingSimple) _countVote(proposalId string, account std.Address, support uint8, weight uint64, params []byte) {
+func (gcs *GovernorCountingSimple) countVote(proposalId string, account std.Address, support uint8, weight uint64, params []byte) {
 	var proposalVote *ProposalVote
-	var _voted *avl.MutTree
+	var voted *avl.MutTree
 
-	proposalVoteI, found := gcs._proposalVotes.Get(proposalId)
+	proposalVoteI, found := gcs.proposalVotes.Get(proposalId)
 	if !found {
 		proposalVote = &ProposalVote{}
-		_voted = avl.NewMutTree()
+		voted = avl.NewMutTree()
 
-		_voted.Set(account.String(), true)
+		voted.Set(account.String(), true)
 
 		if support == uint8(Against) {
 			proposalVote.againstVotes += weight
@@ -105,7 +105,7 @@ func (gcs *GovernorCountingSimple) _countVote(proposalId string, account std.Add
 		} else {
 			panic("GCS: invalid value for enum VoteType")
 		}
-		proposalVote.voted = _voted
+		proposalVote.voted = voted
 	} else {
 		proposalVote = proposalVoteI.(*ProposalVote)
 		_, exists := proposalVote.voted.Get(account.String())
@@ -128,7 +128,7 @@ func (gcs *GovernorCountingSimple) _countVote(proposalId string, account std.Add
 		}
 	}
 	//update
-	gcs._proposalVotes.Set(proposalId, proposalVote)
+	gcs.proposalVotes.Set(proposalId, proposalVote)
 	//filter double vote
 	// voted := votedI.(bool)
 	// if voted{

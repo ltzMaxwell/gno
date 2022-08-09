@@ -14,7 +14,7 @@ type Grc20Votes struct {
 }
 
 func NewGrc20Votes(name, symbol string, decimals uint) *Grc20Votes {
-	return &Grc20Votes{
+	return &Grc20Votes {
 		grc20.NewToken(name, symbol, decimals),
 		votes.NewVotes(),
 	}

@@ -1,7 +1,6 @@
 package governor
 
 import "std"
-import "gno.land/p/grc/grc20extension"
 
 type ProposalCreatedEvent struct {
 	proposalId  uint64
@@ -15,22 +14,24 @@ type ProposalCreatedEvent struct {
 	description string
 }
 
-//   /**
-//  * @dev Emitted when a proposal is canceled.
-//  */
-//  event ProposalCanceled(uint256 proposalId);
+type ProposalCanceledEvent struct {
+	proposalId uint64
+}
 
-//  /**
-//   * @dev Emitted when a proposal is executed.
-//   */
-//  event ProposalExecuted(uint256 proposalId);
+type ProposalExecutedEvent struct {
+	proposalId uint64
+}
 
-/**
- * @dev Emitted when a vote is cast without params.
- *
- * Note: `support` values should be seen as buckets. Their interpretation depends on the voting module used.
- */
-//  event VoteCast(address indexed voter, uint256 proposalId, uint8 support, uint256 weight, string reason);
+// Emitted when a vote is cast without params.
+// Note: `support` values should be seen as buckets. Their interpretation depends on the voting module used.
+// event VoteCast(address indexed voter, uint256 proposalId, uint8 support, uint256 weight, string reason)
+type VoteCastEvent struct {
+	voter      std.Address
+	proposalId uint64
+	support    uint8
+	weight     uint64
+	reason     string
+}
 
 // Emitted when a vote is cast with params.
 // Note: `support` values should be seen as buckets. Their interpretation depends on the voting module used.

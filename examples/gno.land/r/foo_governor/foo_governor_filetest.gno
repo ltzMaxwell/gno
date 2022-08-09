@@ -34,10 +34,11 @@ func main() {
 
 	//getVote
 	height := std.GetHeight()
+	println("---height is :", height)
 	println("height is:", height)
-	votes_test1 := foo_governor.GetVotes(test1, height)
+	votes_test1 := foo_governor.GetVotes(test1, height - 1)
 	println("test1 votes is:", votes_test1)
-	votes_test2 := foo_governor.GetVotes(test2, height)
+	votes_test2 := foo_governor.GetVotes(test2, height - 1)
 	println("test2 votes is:", votes_test2)
 	//Propose
 	var (
@@ -77,15 +78,13 @@ func main() {
 // test3: g1w3jhxapnta047h6lta047h6lta047h6lzfhfxt
 // ============================
 // mint
-// 0 10000
 // total supply: 10000
-// 10000 7000
-// 0 3000
 // balance of test1 is : 7000
 // balance of test2 is : 3000
+// ---height is : 123
 // height is: 123
-// test1 votes is: 7000
-// test2 votes is: 3000
+// test1 votes is: 0
+// test2 votes is: 0
 // before voting----------------------------------
 // proposal RenderHome: ***Proposal state is***: Pending
 // ***Proposal snapShot is***: 123
