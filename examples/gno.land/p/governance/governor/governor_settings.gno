@@ -31,30 +31,25 @@ type ProposalThresholdSetEvent struct {
 	newProposalThreshold int64
 }
 
-// See {IGovernor-votingDelay}.
 func (gs *GovernorSettings) getVotingDelay() int64 {
 	return gs.votingDelay
 }
 
-// See {IGovernor-votingPeriod}.
 func (gs *GovernorSettings) getVotingPeriod() int64 {
 	return gs.votingPeriod
 }
 
-// See {Governor-proposalThreshold}.
 func (gs *GovernorSettings) getProposalThreshold() int64 {
 	return gs.proposalThreshold
 }
 
 // Update the voting delay. This operation can only be performed through a governance proposal.
-// Emits a {VotingDelaySet} event.
 // TODO: check only governance
 func (gs *GovernorSettings) setVotingDelay(newVotingDelay int64) {
 	gs.votingDelay = newVotingDelay
 }
 
 // Update the voting period. This operation can only be performed through a governance proposal.
-// Emits a {VotingPeriodSet} event.
 // TODO: only governance
 func (gs *GovernorSettings) setVotingPeriod(newVotingPeriod int64) {
 	// voting period must be at least one block long
@@ -66,9 +61,8 @@ func (gs *GovernorSettings) setVotingPeriod(newVotingPeriod int64) {
 }
 
 // Update the proposal threshold. This operation can only be performed through a governance proposal.
-// Emits a {ProposalThresholdSet} event.
 // TODO: only governance
-func (gs *GovernorSettings) setProposalThreshold(newProposalThreshold int64){
-	gs.proposalThreshold = newProposalThreshold;
+func (gs *GovernorSettings) setProposalThreshold(newProposalThreshold int64) {
+	gs.proposalThreshold = newProposalThreshold
 	// TODO: emit ProposalThresholdSet
 }

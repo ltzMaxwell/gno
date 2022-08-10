@@ -1,7 +1,9 @@
 package checkpoints
 
-import "std"
-import "strconv"
+import (
+	"std"
+	"strconv"
+)
 
 type Checkpoint struct {
 	blockNumber int64

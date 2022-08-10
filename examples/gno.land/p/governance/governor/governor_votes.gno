@@ -13,7 +13,7 @@ func NewGovernorVotes(g20v *grc20votes.Grc20Votes) *GovernorVotes {
 	}
 }
 
-// Read the voting weight from the token's built in snapshot mechanism (see {Governor-_getVotes}).
+// Read the voting weight from the token's built in snapshot mechanism
 func (gvrv *GovernorVotes) getVotes(account std.Address, blockNumber int64, params []byte) uint64 {
 	return gvrv.grc20Vote.GetPastVotes(account, blockNumber)
 }

@@ -47,5 +47,6 @@ func BalanceOf(owner std.Address) uint64 {
 }
 
 func RenderHome() string {
+	// `test` is test proposalId
 	return gvr.RenderHome("test")
 }

@@ -69,22 +69,19 @@ func NewGovernor(name string, g20v *grc20votes.Grc20Votes, votingDelay int64, vo
 	}
 }
 
-// See {IGovernor-name}.
 func (gvr *Governor) getName() string {
 	return gvr.name
 }
 
-// See {IGovernor-version}.
 func (gvr *Governor) getVersion() string {
 	return "1"
 }
 
 func hashProposal(targets []std.Address, values []uint64, calldatas []byte, descriptionHash []byte) string {
-	// TODO: impl real hash
+	// TODO: impl hash
 	return "test"
 }
 
-// See {IGovernor-state}.
 func (gvr *Governor) state(proposalId string) ProposalState {
 	proposalI, found := gvr.proposals.Get(proposalId)
 	if !found {
@@ -125,18 +122,16 @@ func (gvr *Governor) state(proposalId string) ProposalState {
 	}
 }
 
-// See {IGovernor-proposalSnapshot}.
 func (gvr *Governor) proposalSnapshot(proposalId string) int64 {
 	proposalI, found := gvr.proposals.Get(proposalId)
 	if !found {
-		//todo
+		// TODO
 		return 0
 	}
 	proposal := proposalI.(*ProposalCore)
 	return proposal.voteStart.GetDeadline()
 }
 
-// See {IGovernor-proposalDeadline}.
 func (gvr *Governor) proposalDeadline(proposalId string) int64 {
 	proposalI, found := gvr.proposals.Get(proposalId)
 	if !found {
@@ -148,7 +143,7 @@ func (gvr *Governor) proposalDeadline(proposalId string) int64 {
 	return proposal.voteEnd.GetDeadline()
 }
 
-//Part of the Governor Bravo's interface: _"The number of votes required in order for a voter to become a proposer"_.
+// Part of the Governor Bravo's interface: _"The number of votes required in order for a voter to become a proposer"_.
 func (gvr *Governor) proposalThreshold() uint64 {
 	return 0
 }
@@ -160,11 +155,9 @@ func defaultParams() []byte {
 	return ""
 }
 
-// module:voting
 // Returns weither `account` has cast a vote on `proposalId`.
 // func hasVoted(proposalId uint64, account std.Address) bool{}
 
-// See {IGovernor-propose}.
 func (gvr *Governor) Propose(targets []std.Address, values []uint64, calldatas []byte, description string) string {
 	sender := std.GetOrigCaller()
 	height := std.GetHeight()
@@ -208,7 +201,6 @@ func (gvr *Governor) Propose(targets []std.Address, values []uint64, calldatas [
 	return proposalId
 }
 
-// See {IGovernor-execute}.
 func (gvr *Governor) execute(targets []std.Address, values []uint64, calldatas []byte, description []byte) string {
 	proposalId := hashProposal(targets, values, calldatas, description)
 
@@ -256,7 +248,6 @@ func _execute(proposalId string, targets []std.Address, values []uint64, calldat
 
 // Internal cancel mechanism: locks up the proposal timer, preventing it from being re-submitted. Marks it as
 // canceled to allow distinguishing it from executed proposals.
-// Emits a {IGovernor-ProposalCanceled} event.
 func (gvr *Governor) cancel(targets []std.Address, values []uint64, calldatas []byte, description []byte) string {
 	// TODO: descriptionHash?
 	proposalId := hashProposal(targets, values, calldatas, description)
@@ -274,35 +265,27 @@ func (gvr *Governor) cancel(targets []std.Address, values []uint64, calldatas []
 	gvr.proposals.Set(proposalId, proposal)
 
 	// TODO: emit ProposalCanceled(proposalId);
-
 	return proposalId
 }
 
-// See {IGovernor-getVotes}.
 func (gvr *Governor) GetVotes(account std.Address, blockNumber int64) uint64 {
 	return gvr.gv.getVotes(account, blockNumber, defaultParams())
 }
 
-// See {IGovernor-getVotesWithParams}.
 func (gvr *Governor) getVotesWithParams(account std.Address, blockNumber int64, params []byte) uint64 {
 	return gvr.gv.getVotes(account, blockNumber, params)
 }
 
-// See {IGovernor-castVote}.
 func (gvr *Governor) CastVote(proposalId string, support uint8) uint64 {
-	//get caller
 	voter := std.GetOrigCaller()
 	return gvr.castVote(proposalId, voter, support, "")
 }
 
-// See {IGovernor-castVoteWithReason}.
 func (gvr *Governor) CastVoteWithReason(proposalId string, support uint8, reason string) uint64 {
-	//get caller
 	voter := std.GetOrigCaller()
 	return gvr.castVote(proposalId, voter, support, reason)
 }
 
-// See {IGovernor-castVoteWithReasonAndParams}.
 func (gvr *Governor) CastVoteWithReasonAndParams(proposalId string, support uint8, reason string, params []byte) uint64 {
 	voter := std.GetOrigCaller()
 	return gvr.castVoteWithReasonParams(proposalId, voter, support, reason, params)
@@ -310,14 +293,12 @@ func (gvr *Governor) CastVoteWithReasonAndParams(proposalId string, support uint
 
 // Internal vote casting mechanism: Check that the vote is pending, that it has not been cast yet, retrieve
 // voting weight using {IGovernor-getVotes} and call the {_countVote} internal function. Uses the defaultParams().
-// Emits a {IGovernor-VoteCast} event.
 func (gvr *Governor) castVote(proposalId string, account std.Address, support uint8, reason string) uint64 {
 	return gvr.castVoteWithReasonParams(proposalId, account, support, reason, defaultParams())
 }
 
 // Internal vote casting mechanism: Check that the vote is pending, that it has not been cast yet, retrieve
 // voting weight using {IGovernor-getVotes} and call the {_countVote} internal function.
-// Emits a {IGovernor-VoteCast} event.
 func (gvr *Governor) castVoteWithReasonParams(proposalId string, account std.Address, support uint8, reason string, params []byte) uint64 {
 	proposalI, exists := gvr.proposals.Get(proposalId)
 	if !exists {
@@ -333,11 +314,9 @@ func (gvr *Governor) castVoteWithReasonParams(proposalId string, account std.Add
 	gvr.gcs.countVote(proposalId, account, support, weight, params)
 
 	if len(params) == 0 {
-		//todo
-		// emit VoteCast(account, proposalId, support, weight, reason);
+		// TODO: emit VoteCastEvent
 	} else {
-		//todo
-		// emit VoteCastWithParams(account, proposalId, support, weight, reason,params);
+		// TODO: emit VoteCastWithParamsEvent
 	}
 	return weight
 }
@@ -357,7 +336,6 @@ func executor() std.Address {
 	// TODO:
 	// return address(this);
 }
-
 
 func (gvr *Governor) RenderHome(proposalId string) string {
 	state := gvr.state(proposalId)
