@@ -9,7 +9,6 @@ import (
 // const admin = std.Address("g1uuuderyrfvleqmfcx52ynyds2c9wvq87a22yxz")
 
 func main() {
-	//set up caller, say 2 accounts
 	test1 := testutils.TestAddress("test1")
 	println("test1:", test1)
 	test2 := testutils.TestAddress("test2")
@@ -19,20 +18,20 @@ func main() {
 	println("============================")
 
 	std.TestSetOrigCaller(test1)
-	//mint
+	// mint
 	println("mint")
 	foo_governor.Mint(test1, 10000)
 	totalSupply := foo_governor.TotalSupply()
 	println("total supply:", totalSupply)
 
-	//tranfer
+	// tranfer
 	foo_governor.Transfer(test1, test2, 3000)
 
-	//balance of
+	// balance of
 	println("balance of test1 is :", foo_governor.BalanceOf(test1))
 	println("balance of test2 is :", foo_governor.BalanceOf(test2))
 
-	//getVote
+	// getVote
 	height := std.GetHeight()
 	println("---height is :", height)
 	println("height is:", height)
@@ -40,7 +39,7 @@ func main() {
 	println("test1 votes is:", votes_test1)
 	votes_test2 := foo_governor.GetVotes(test2, height - 1)
 	println("test2 votes is:", votes_test2)
-	//Propose
+	// Propose
 	var (
 		targets []std.Address
 	 	values []uint64
@@ -53,11 +52,10 @@ func main() {
 
 	proposalId := foo_governor.Propose(targets, values, calldatas, "")
 
-
 	println("before voting----------------------------------")
 	println("proposal RenderHome:", foo_governor.RenderHome())
 
-	//vote
+	// vote
 	std.TestSkipHeights(1)		//skip voting delay period
 	weight := foo_governor.CastVote(proposalId, 1)
 
@@ -66,7 +64,7 @@ func main() {
 	println("proposal RenderHome:", foo_governor.RenderHome())
 
 
-	//check result
+	// check result
 	std.TestSkipHeights(5)		
 	println("after voting period ----------------------------------")
 	println("proposal RenderHome:", foo_governor.RenderHome())

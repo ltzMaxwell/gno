@@ -18,23 +18,22 @@ type ProposalVote struct {
 	againstVotes uint64
 	forVotes     uint64
 	abstainVotes uint64
-	voted        *avl.MutTree //address =>  bool
+	voted        *avl.MutTree // address =>  bool
 }
 
 type GovernorCountingSimple struct {
-	proposalVotes  *avl.MutTree //proposalId => proposalVote
-	gvqf           *GovernorVotesQuorumFraction
+	proposalVotes *avl.MutTree // proposalId => proposalVote
+	gvqf          *GovernorVotesQuorumFraction
 }
 
 func NewGovernorCountingSimple(g20v *grc20votes.Grc20Votes) *GovernorCountingSimple {
 	return &GovernorCountingSimple{
-		//todo
-		proposalVotes:  avl.NewMutTree(),
-		gvqf:           NewGovernorVotesQuorumFraction(50, g20v),
+		// TODO:
+		proposalVotes: avl.NewMutTree(),
+		gvqf:          NewGovernorVotesQuorumFraction(50, g20v),
 	}
 }
 
-// See {IGovernor-hasVoted}.
 func (gcs *GovernorCountingSimple) hasVoted(proposalId string, account std.Address) bool {
 	proposalVoteI, found := gcs.proposalVotes.Get(proposalId)
 	if !found {
@@ -73,7 +72,6 @@ func (gcs *GovernorCountingSimple) quorumReached(proposalId string, snapshot int
 	return gcs.gvqf.quorum(snapshot) <= proposalVote.forVotes+proposalVote.abstainVotes
 }
 
-// See {Governor-_voteSucceeded}. In this module, the forVotes must be strictly over the againstVotes.
 func (gcs *GovernorCountingSimple) voteSucceeded(proposalId string) bool {
 	proposalVoteI, found := gcs.proposalVotes.Get(proposalId)
 	if !found {
@@ -84,7 +82,6 @@ func (gcs *GovernorCountingSimple) voteSucceeded(proposalId string) bool {
 	return proposalVote.forVotes > proposalVote.againstVotes
 }
 
-// See {Governor-_countVote}. In this module, the support follows the `VoteType` enum (from Governor Bravo).
 func (gcs *GovernorCountingSimple) countVote(proposalId string, account std.Address, support uint8, weight uint64, params []byte) {
 	var proposalVote *ProposalVote
 	var voted *avl.MutTree
@@ -109,9 +106,9 @@ func (gcs *GovernorCountingSimple) countVote(proposalId string, account std.Addr
 	} else {
 		proposalVote = proposalVoteI.(*ProposalVote)
 		_, exists := proposalVote.voted.Get(account.String())
-		//only vote when not voted before
+		// only vote when not voted before
 		if !exists {
-			//set vote state
+			// set vote state
 			proposalVote.voted.Set(account.String(), true)
 
 			if support == uint8(Against) {
@@ -127,7 +124,7 @@ func (gcs *GovernorCountingSimple) countVote(proposalId string, account std.Addr
 			panic("You have voted for this before")
 		}
 	}
-	//update
+	// update
 	gcs.proposalVotes.Set(proposalId, proposalVote)
 	//filter double vote
 	// voted := votedI.(bool)
