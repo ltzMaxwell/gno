@@ -3,7 +3,7 @@ package grc20votes
 import (
 	"std"
 	votes "gno.land/p/governance/gvotes"
-	grc20 "gno.land/p/grc/grc20/impl"
+	grc20 "gno.land/p/grc/grc20"
 )
 
 const zeroAddress = std.Address("")

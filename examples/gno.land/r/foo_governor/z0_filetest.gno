@@ -4,6 +4,7 @@ import (
 	"std"
 	"gno.land/r/foo_governor"
 	"gno.land/p/testutils"
+	"gno.land/p/ufmt"
 )
 
 // const admin = std.Address("g1uuuderyrfvleqmfcx52ynyds2c9wvq87a22yxz")
@@ -31,14 +32,16 @@ func main() {
 	println("balance of test1 is :", foo_governor.BalanceOf(test1))
 	println("balance of test2 is :", foo_governor.BalanceOf(test2))
 
+	std.TestSkipHeights(1)		//skip 1 step, we can only get vote from past block
+
 	// getVote
 	height := std.GetHeight()
-	println("---height is :", height)
 	println("height is:", height)
 	votes_test1 := foo_governor.GetVotes(test1, height - 1)
-	println("test1 votes is:", votes_test1)
+	println(ufmt.Sprintf("test1 votes at block: %d is %d: ", height - 1, votes_test1))
 	votes_test2 := foo_governor.GetVotes(test2, height - 1)
-	println("test2 votes is:", votes_test2)
+	println(ufmt.Sprintf("test2 votes at block: %d is %d: ", height - 1, votes_test2))
+
 	// Propose
 	var (
 		targets []std.Address
@@ -79,22 +82,21 @@ func main() {
 // total supply: 10000
 // balance of test1 is : 7000
 // balance of test2 is : 3000
-// ---height is : 123
-// height is: 123
-// test1 votes is: 0
-// test2 votes is: 0
+// height is: 124
+// test1 votes at block: 123 is 7000:
+// test2 votes at block: 123 is 3000:
 // before voting----------------------------------
 // proposal RenderHome: ***Proposal state is***: Pending
-// ***Proposal snapShot is***: 123
-// ***Proposal deadLine is***: 128
+// ***Proposal snapShot is***: 124
+// ***Proposal deadLine is***: 129
 //
 // voted----------------------------------
 // weight is:  7000
 // proposal RenderHome: ***Proposal state is***: Active
-// ***Proposal snapShot is***: 123
-// ***Proposal deadLine is***: 128
+// ***Proposal snapShot is***: 124
+// ***Proposal deadLine is***: 129
 //
 // after voting period ----------------------------------
 // proposal RenderHome: ***Proposal state is***: Succeeded
-// ***Proposal snapShot is***: 123
-// ***Proposal deadLine is***: 128
+// ***Proposal snapShot is***: 124
+// ***Proposal deadLine is***: 129

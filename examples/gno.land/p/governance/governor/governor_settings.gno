@@ -44,7 +44,7 @@ func (gs *GovernorSettings) getProposalThreshold() int64 {
 }
 
 // Update the voting delay. This operation can only be performed through a governance proposal.
-// TODO: check only governance
+// TODO: only governance
 func (gs *GovernorSettings) setVotingDelay(newVotingDelay int64) {
 	gs.votingDelay = newVotingDelay
 }
@@ -56,7 +56,7 @@ func (gs *GovernorSettings) setVotingPeriod(newVotingPeriod int64) {
 	if newVotingPeriod <= 0 {
 		panic("GovernorSettings: voting period too low")
 	}
-	// TODO: emit VotingPeriodSet(_votingPeriod, newVotingPeriod)
+	// TODO: emit VotingPeriodSetEvent
 	gs.votingPeriod = newVotingPeriod
 }
 
@@ -64,5 +64,5 @@ func (gs *GovernorSettings) setVotingPeriod(newVotingPeriod int64) {
 // TODO: only governance
 func (gs *GovernorSettings) setProposalThreshold(newProposalThreshold int64) {
 	gs.proposalThreshold = newProposalThreshold
-	// TODO: emit ProposalThresholdSet
+	// TODO: emit ProposalThresholdSetEvent
 }

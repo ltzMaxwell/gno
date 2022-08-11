@@ -125,8 +125,7 @@ func (gvr *Governor) state(proposalId string) ProposalState {
 func (gvr *Governor) proposalSnapshot(proposalId string) int64 {
 	proposalI, found := gvr.proposals.Get(proposalId)
 	if !found {
-		// TODO
-		return 0
+		panic("Governor: proposal not exist")
 	}
 	proposal := proposalI.(*ProposalCore)
 	return proposal.voteStart.GetDeadline()
@@ -135,10 +134,8 @@ func (gvr *Governor) proposalSnapshot(proposalId string) int64 {
 func (gvr *Governor) proposalDeadline(proposalId string) int64 {
 	proposalI, found := gvr.proposals.Get(proposalId)
 	if !found {
-		// TODO:
-		return 0
+		panic("Governor: proposal not exist")
 	}
-
 	proposal := proposalI.(*ProposalCore)
 	return proposal.voteEnd.GetDeadline()
 }
@@ -157,7 +154,6 @@ func defaultParams() []byte {
 
 // Returns weither `account` has cast a vote on `proposalId`.
 // func hasVoted(proposalId uint64, account std.Address) bool{}
-
 func (gvr *Governor) Propose(targets []std.Address, values []uint64, calldatas []byte, description string) string {
 	sender := std.GetOrigCaller()
 	height := std.GetHeight()
@@ -326,15 +322,14 @@ func (gvr *Governor) castVoteWithReasonParams(proposalId string, account std.Add
 // in a governance proposal to recover tokens or Ether that was sent to the governor contract by mistake.
 // Note that if the executor is simply the governor itself, use of `relay` is redundant.
 func relay(target std.Address, value uint64, data []byte) {
-	// TODO: only governance modifier
-	// Address.functionCallWithValue(target, data, value);
+	// TODO: only governance
+	// TODO: relay
 }
 
 // Address through which the governor executes action. Will be overloaded by module that execute actions
 // through another contract such as a timelock.
 func executor() std.Address {
-	// TODO:
-	// return address(this);
+	// TODO: return executor
 }
 
 func (gvr *Governor) RenderHome(proposalId string) string {
