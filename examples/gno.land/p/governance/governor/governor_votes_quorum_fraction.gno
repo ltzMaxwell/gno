@@ -4,18 +4,15 @@ import 	"gno.land/p/grc/grc20extension"
 
 type GovernorVotesQuorumFraction struct {
 	quorumNumerator uint64
-	// gvrv *GovernorVotes
 	g20v *grc20votes.Grc20Votes
 }
 
 // Initialize quorum as a fraction of the token's total supply.
 // The fraction is specified as `numerator / denominator`. By default the denominator is 100, so quorum is
-// specified as a percent: a numerator of 10 corresponds to quorum being 10% of total supply. The denominator can be
-// customized by overriding quorumDenominator.
+// specified as a percent: a numerator of 10 corresponds to quorum being 10% of total supply. 
 func NewGovernorVotesQuorumFraction(quorumNumerator uint64, g20v *grc20votes.Grc20Votes) *GovernorVotesQuorumFraction {
 	return &GovernorVotesQuorumFraction{
 		quorumNumerator: quorumNumerator,
-		// gvrv: &GovernorVotes{},
 		g20v: g20v,
 	}
 }
@@ -30,7 +27,7 @@ func (gvqf *GovernorVotesQuorumFraction) getQuorumNumerator() uint64 {
 	return gvqf.quorumNumerator
 }
 
-// Returns the quorum denominator. Defaults to 100, but may be overridden.
+// Returns the quorum denominator. Defaults to 100.
 func (gvqf *GovernorVotesQuorumFraction) getQuorumDenominator() uint64 {
 	return 100
 }

@@ -42,6 +42,9 @@ func Transfer(from std.Address, to std.Address, amount uint64) {
 	g20v.TransferTo(from, to, amount)
 }
 
+// // is this same with transfer
+// func Delegate
+
 func BalanceOf(owner std.Address) uint64 {
 	return g20v.BalanceOf(owner)
 }

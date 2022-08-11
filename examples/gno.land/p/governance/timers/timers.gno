@@ -1,0 +1,83 @@
+package timers
+
+import "std"
+
+type Timestamp struct {
+	deadline uint64
+}
+
+func NewTimestamp() *Timestamp {
+	return &Timestamp {
+		deadline: 0,
+	}
+}
+
+func (timer *Timestamp) getDeadline() uint64 {
+	return timer.deadline
+}
+
+func (timer *Timestamp) setDeadline(timestamp uint64) {
+	timer.deadline = timestamp
+}
+
+func (timer *Timestamp) reset() {
+	timer.deadline = 0
+}
+
+func (timer *Timestamp) isUnset() bool {
+	return timer.deadline == 0
+}
+
+func (timer *Timestamp) isStarted() bool {
+	return timer.deadline > 0
+}
+
+// TODO: block.Timestamp, do we need this?
+
+// func (timer. *Timestamp) isPending()bool{
+// 	return timer._deadline > block.timestamp;
+// }
+
+// func (timer. *Timestamp) isExpired()bool{
+// 	return timer.isStarted() && timer._deadline <= block.timestamp;
+// }
+
+type BlockNumber struct {
+	deadline int64
+}
+
+func NewBlockNumber() *BlockNumber {
+	return &BlockNumber{
+		deadline: 0,
+	}
+}
+
+func (timer *BlockNumber) GetDeadline() int64 {
+	return timer.deadline
+}
+
+func (timer *BlockNumber) SetDeadline(timestamp int64) {
+	timer.deadline = timestamp
+}
+
+func (timer *BlockNumber) reset() {
+	timer.deadline = 0
+}
+
+func (timer *BlockNumber) IsUnset() bool {
+	return timer.deadline == 0
+}
+
+func (timer *BlockNumber) isStarted() bool {
+	return timer.deadline > 0
+}
+
+func (timer *BlockNumber) isPending() bool {
+	height := std.GetHeight()
+	return timer.deadline > height
+}
+
+func (timer *BlockNumber) isExpired() bool {
+	height := std.GetHeight()
+	return timer.isStarted() && timer.deadline <= height
+}

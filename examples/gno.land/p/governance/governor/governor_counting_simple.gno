@@ -28,8 +28,8 @@ type GovernorCountingSimple struct {
 
 func NewGovernorCountingSimple(g20v *grc20votes.Grc20Votes) *GovernorCountingSimple {
 	return &GovernorCountingSimple{
-		// TODO:
 		proposalVotes: avl.NewMutTree(),
+		// TODO: customize numerator
 		gvqf:          NewGovernorVotesQuorumFraction(50, g20v),
 	}
 }
@@ -37,12 +37,9 @@ func NewGovernorCountingSimple(g20v *grc20votes.Grc20Votes) *GovernorCountingSim
 func (gcs *GovernorCountingSimple) hasVoted(proposalId string, account std.Address) bool {
 	proposalVoteI, found := gcs.proposalVotes.Get(proposalId)
 	if !found {
-		// return false?
 		panic("GCS: proposal not exist")
 	}
-
 	proposalVote := proposalVoteI.(*ProposalVote)
-
 	hasVotedI, found := proposalVote.voted.Get(account.String())
 	if !found {
 		return false
@@ -54,14 +51,12 @@ func (gcs *GovernorCountingSimple) hasVoted(proposalId string, account std.Addre
 func (gcs *GovernorCountingSimple) getProposalVotes(proposalId string) (againstVotes uint64, forVotes uint64, abstainVotes uint64) {
 	proposalVoteI, found := gcs.proposalVotes.Get(proposalId)
 	if !found {
-		//  return 0, 0, 0
 		panic("GCS: proposal not exist")
 	}
 	proposalVote := proposalVoteI.(*ProposalVote)
 	return proposalVote.againstVotes, proposalVote.forVotes, proposalVote.abstainVotes
 }
 
-// See {Governor-_quorumReached}.
 func (gcs *GovernorCountingSimple) quorumReached(proposalId string, snapshot int64) bool {
 	proposalVoteI, exists := gcs.proposalVotes.Get(proposalId)
 	if !exists {
@@ -75,7 +70,6 @@ func (gcs *GovernorCountingSimple) quorumReached(proposalId string, snapshot int
 func (gcs *GovernorCountingSimple) voteSucceeded(proposalId string) bool {
 	proposalVoteI, found := gcs.proposalVotes.Get(proposalId)
 	if !found {
-		// return false
 		panic("GCS: proposal not exist")
 	}
 	proposalVote := proposalVoteI.(*ProposalVote)
@@ -90,7 +84,6 @@ func (gcs *GovernorCountingSimple) countVote(proposalId string, account std.Addr
 	if !found {
 		proposalVote = &ProposalVote{}
 		voted = avl.NewMutTree()
-
 		voted.Set(account.String(), true)
 
 		if support == uint8(Against) {
@@ -121,14 +114,9 @@ func (gcs *GovernorCountingSimple) countVote(proposalId string, account std.Addr
 				panic("GCS: invalid value for enum VoteType")
 			}
 		} else {
-			panic("You have voted for this before")
+			panic("GCS: You have voted for this before")
 		}
 	}
 	// update
 	gcs.proposalVotes.Set(proposalId, proposalVote)
-	//filter double vote
-	// voted := votedI.(bool)
-	// if voted{
-	// panic("GovernorVotingSimple vote alreay cast")
-	// }
 }
