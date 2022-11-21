@@ -316,9 +316,9 @@ func (av *ArrayValue) GetReadonlyBytes() []byte {
 		bz := make([]byte, len(av.List))
 		for i, tv := range av.List {
 			// av.List may contain nil since it's allocated with the cap of a slice
-			if tv.T == nil {
-				return bz
-			}
+			// if tv.T == nil {
+			// 	return bz
+			// }
 			if tv.T.Kind() != Uint8Kind {
 				panic(fmt.Sprintf(
 					"expected byte kind but got %v",

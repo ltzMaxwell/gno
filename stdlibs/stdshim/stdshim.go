@@ -14,6 +14,15 @@ func IsOriginCall() (isOrigin bool) {
 	return false
 }
 
+func Marshal1(bz interface{}) (js []byte, ok bool) {
+	panic(shimWarn)
+	return
+}
+func Marshal2(bz interface{}) (js []byte) {
+	panic(shimWarn)
+	return
+}
+
 func Hash(bz []byte) (hash [20]byte) {
 	panic(shimWarn)
 	return

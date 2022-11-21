@@ -1,6 +1,7 @@
 package stdlibs
 
 import (
+	"encoding/json"
 	"math"
 	"reflect"
 	"strconv"
@@ -138,6 +139,46 @@ func InjectPackage(store gno.Store, pn *gno.PackageNode) {
 				isOrigin := len(m.Frames) == 2
 				res0 := gno.TypedValue{T: gno.BoolType}
 				res0.SetBool(isOrigin)
+				m.PushValue(res0)
+			},
+		)
+		pn.DefineNative("Marshal1",
+			gno.Flds( // params
+				"bz", gno.InterfaceT(nil),
+			),
+			gno.Flds( // results
+				"js", "[]byte",
+				"ok", "bool",
+			),
+			func(m *gno.Machine) {
+				arg0 := m.LastBlock().GetParams1().TV
+				in := arg0.V.(interface{})
+				js, err := json.Marshal(in)
+				if err != nil {
+					m.PushValue(typedByteSlice(m.Alloc.NewSliceFromData(js)))
+					m.PushValue(typedBool(false))
+				} else {
+					m.PushValue(typedByteSlice(m.Alloc.NewSliceFromData(js)))
+					m.PushValue(typedBool(true))
+				}
+			},
+		)
+		pn.DefineNative("Marshal2",
+			gno.Flds( // params
+				"bz", gno.InterfaceT(nil),
+			),
+			gno.Flds( // results
+				"js", "[]byte",
+			),
+			func(m *gno.Machine) {
+				arg0 := m.LastBlock().GetParams1().TV
+				in := arg0.V.(interface{})
+				js, _ := json.Marshal(in)
+				res0 := gno.Go2GnoValue(
+					m.Alloc,
+					m.Store,
+					reflect.ValueOf(js),
+				)
 				m.PushValue(res0)
 			},
 		)
