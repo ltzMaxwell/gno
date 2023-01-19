@@ -327,6 +327,29 @@ func (av *ArrayValue) GetReadonlyBytes() []byte {
 		return av.Data
 	}
 }
+func (av *ArrayValue) GetReadonlyStrs() []string {
+	if av.Data == nil {
+		// NOTE: we cannot convert to .Data type bytearray here
+		// because there might be references to .List[x].
+		bz := make([]string, len(av.List))
+		for i, tv := range av.List {
+			// av.List may contain nil since it's allocated with the cap of a slice
+			if tv.T == nil {
+				break
+			}
+			if tv.T.Kind() != StringKind {
+				panic(fmt.Sprintf(
+					"expected string kind but got %v",
+					tv.T.Kind()))
+			}
+			bz[i] = tv.GetString()
+		}
+		return bz
+	} else {
+		// return string(av.Data)
+		return []string{"test"}
+	}
+}
 
 func (av *ArrayValue) GetCapacity() int {
 	if av.Data == nil {

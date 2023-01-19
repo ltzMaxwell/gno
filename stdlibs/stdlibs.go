@@ -1,6 +1,7 @@
 package stdlibs
 
 import (
+	"fmt"
 	"math"
 	"reflect"
 	"strconv"
@@ -163,6 +164,124 @@ func InjectPackage(store gno.Store, pn *gno.PackageNode) {
 					reflect.ValueOf([20]byte(hash)),
 				)
 				m.PushValue(res0)
+			},
+		)
+		pn.DefineNative("CallPkg",
+			gno.Flds(
+				"pkg", "string",
+				"fn", "string",
+				"args", "[]string",
+			),
+			gno.Flds(
+				"r", "string",
+				"ok", "bool",
+			),
+			func(m *gno.Machine) {
+				arg0, arg1, arg2 := m.LastBlock().GetParams3()
+
+				pkgPath := arg0.TV.GetString()
+				println(pkgPath)
+				fnc := arg1.TV.GetString()
+				println(fnc)
+
+				// arg := arg2.TV.GetString()
+				// println(arg)
+
+				args := []string(nil)
+				if arg2.TV.V != nil {
+					slice := arg2.TV.V.(*gno.SliceValue)
+					array := slice.GetBase(m.Store)
+					println("len of list: ", len(array.List))
+					args = array.GetReadonlyStrs()
+				}
+				println("len args: ", len(args))
+
+				// args := []string{string(bz)}
+
+				pkgAddr := gno.DerivePkgAddr(pkgPath)
+
+				// Get the package and function type.
+				pv := store.GetPackage(pkgPath, false)
+				pl := gno.PackageNodeLocation(pkgPath)
+				pn := store.GetBlockNode(pl).(*gno.PackageNode)
+				ft := pn.GetStaticTypeOf(store, gno.Name(fnc)).(*gno.FuncType)
+				// Make main Package with imports.
+				mpn := gno.NewPackageNode("main", "main", nil)
+				mpn.Define("pkg", gno.TypedValue{T: &gno.PackageType{}, V: pv})
+				mpv := mpn.NewPackage()
+				// Parse expression.
+				argslist := ""
+				for i := range args {
+					if i > 0 {
+						argslist += ","
+					}
+					argslist += fmt.Sprintf("arg%d", i)
+				}
+				argslist += fmt.Sprintf("arg%d", 0)
+				expr := fmt.Sprintf(`pkg.%s(%s)`, fnc, argslist)
+				xn := gno.MustParseExpr(expr)
+				// Convert Args to gno values.
+				cx := xn.(*gno.CallExpr)
+				if cx.Varg {
+					panic("variadic calls not yet supported")
+				}
+				for i, arg := range args {
+					argType := ft.Params[i].Type
+					println(i, arg)
+					atv := gno.ConvertArgToGno(arg, argType)
+					cx.Args[i] = &gno.ConstExpr{
+						TypedValue: atv,
+					}
+				}
+				ctx := m.Context.(ExecContext)
+				newCtx := ExecContext{
+					ChainID:     ctx.ChainID,
+					Height:      ctx.Height,
+					Timestamp:   ctx.Timestamp,
+					OrigPkgAddr: pkgAddr.Bech32(),
+				}
+				m.Context = newCtx
+
+				// Construct machine and evaluate.
+				m1 := gno.NewMachineWithOptions(
+					gno.MachineOptions{
+						PkgPath:   "",
+						Store:     store,
+						Context:   newCtx,
+						Alloc:     store.GetAllocator(),
+						MaxCycles: 10 * 1000 * 1000, // 10M cycles // XXX
+					})
+				m1.SetActivePackage(mpv)
+
+				var res0 gno.TypedValue
+				defer func() {
+					if r := recover(); r != nil {
+						// err := errors.Wrap(fmt.Errorf("%v", r), "VM call panic: %v\n%s\n",
+						// r, m.String())
+						m.PushValue(res0)
+						m.PushValue(typedBool(false))
+					} else {
+						m.PushValue(res0)
+						m.PushValue(typedBool(true))
+					}
+					return
+				}()
+
+				rtvs := m1.Eval(xn)
+				println("CPUCYCLES call", m1.Cycles)
+				var res string
+				for i, rtv := range rtvs {
+					res = res + rtv.GetString()
+					println(rtv.GetString())
+					if i < len(rtvs)-1 {
+						res += "\n"
+					}
+				}
+				res0 = gno.Go2GnoValue(
+					m.Alloc,
+					m.Store,
+					reflect.ValueOf(res),
+				)
 			},
 		)
 		pn.DefineNative("CurrentRealmPath",
