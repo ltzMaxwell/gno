@@ -166,7 +166,7 @@ func InjectPackage(store gno.Store, pn *gno.PackageNode) {
 				m.PushValue(res0)
 			},
 		)
-		pn.DefineNative("CallPkg",
+		pn.DefineNative("Call",
 			gno.Flds(
 				"pkg", "string",
 				"fn", "string",
