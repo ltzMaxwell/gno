@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/gnolang/overflow"
@@ -24,6 +25,12 @@ type Gas = int64
 // OutOfGasException defines an error thrown when an action results in out of gas.
 type OutOfGasException struct {
 	Descriptor string
+}
+
+func (oge OutOfGasException) String() string {
+	return fmt.Sprintf(
+		"out of gas in location: %v;",
+		oge.Descriptor)
 }
 
 // GasOverflowException defines an error thrown when an action results gas consumption
