@@ -78,8 +78,12 @@ func (m *Machine) doOpIndex2() {
 func (m *Machine) doOpSelector() {
 	sx := m.PopExpr().(*SelectorExpr)
 	xv := m.PeekValue(1)
-	res := xv.GetPointerTo(m.Alloc, m.Store, sx.Path)
-	*xv = res.Deref() // reuse as result
+	res := xv.GetPointerTo(m.Alloc, m.Store, sx.Path).Deref()
+	if debug {
+		m.Printf("-v[S] %v\n", xv)
+		m.Printf("+v[S] %v\n", res)
+	}
+	*xv = res // reuse as result
 }
 
 func (m *Machine) doOpSlice() {
@@ -322,11 +326,15 @@ func (m *Machine) doOpTypeAssert2() {
 			panic("should not happen")
 		}
 	} else { // is concrete assert
-		tid := t.TypeID()
-		xtid := xt.TypeID()
-		// assert that x is of type.
-		same := tid == xtid
-		if same {
+		// xt may be nil in case of the nil type; in which case we should
+		// return the zero value as a normal failed assertion.
+		// otherwise, perform assertion ensuring TypeIDs match.
+		valid := xt != nil
+		if valid {
+			// assert that x is of type.
+			valid = t.TypeID() == xt.TypeID()
+		}
+		if valid {
 			// *xv = *xv
 			*tv = untypedBool(true)
 		} else {
