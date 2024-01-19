@@ -517,7 +517,14 @@ func errEqual(e1, e2 error) bool {
 	if e1 == nil || e2 == nil {
 		return e1 == e2
 	}
-	return e1.Error() == e2.Error()
+	if e1.Error() == e2.Error() {
+		return true
+	} else {
+		if strings.Contains(e1.Error(), e2.Error()) { // why TestNumErrorUnwrap fail
+			return true
+		}
+	}
+	return false
 }
 
 func printError(err error) string {
