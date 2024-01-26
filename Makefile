@@ -44,7 +44,7 @@ fmt:
 
 .PHONY: lint
 lint:
-	$(rundep) github.com/golangci/golangci-lint/cmd/golangci-lint run --config .github/golangci.yml
+	CGO_ENABLED=0 $(rundep) github.com/golangci/golangci-lint/cmd/golangci-lint run --config .github/golangci.yml
 
 .PHONY: tidy
 tidy:
