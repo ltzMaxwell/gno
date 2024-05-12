@@ -1100,6 +1100,7 @@ func UverseNode() *PackageNode {
 	)
 
 	done = true
+	fmt.Println("---uverse node initilization finished!!!")
 	return uverseNode
 }
 
