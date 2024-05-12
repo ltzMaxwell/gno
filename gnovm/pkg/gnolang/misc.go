@@ -150,12 +150,17 @@ func isReservedName(n Name) bool {
 
 // scans uverse static node for blocknames. (slow)
 func isUverseName(n Name) bool {
+	println("---isUverseName")
+
 	uverseNames := UverseNode().GetBlockNames()
+
+	//uverseNames := UverseNode().GetBlockNames()
 	for _, name := range uverseNames {
 		if name == n {
 			return true
 		}
 	}
+	//}
 	return false
 }
 

@@ -786,5 +786,6 @@ func InitStoreCaches(store Store) {
 	for _, tt := range types {
 		store.SetCacheType(tt)
 	}
+	fmt.Println("---InitStoreCaches")
 	store.SetCachePackage(Uverse())
 }

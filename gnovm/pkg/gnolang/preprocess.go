@@ -14,6 +14,7 @@ import (
 // Anything predefined or preprocessed here get skipped during the Preprocess
 // phase.
 func PredefineFileSet(store Store, pn *PackageNode, fset *FileSet) {
+	println("---predefine fileset")
 	// First, initialize all file nodes and connect to package node.
 	for _, fn := range fset.Files {
 		SetNodeLocations(pn.PkgPath, string(fn.Name), fn)
@@ -211,6 +212,7 @@ func Preprocess(store Store, ctx BlockNode, n Node) Node {
 
 			// TRANS_ENTER -----------------------
 			case *ImportDecl, *ValueDecl, *TypeDecl, *FuncDecl:
+				fmt.Println("---FuncDecl")
 				// NOTE func decl usually must happen with a
 				// file, and so last is usually a *FileNode,
 				// but for testing convenience we allow
@@ -2986,9 +2988,13 @@ func predefineNow(store Store, last BlockNode, d Decl) (Decl, bool) {
 }
 
 func predefineNow2(store Store, last BlockNode, d Decl, m map[Name]struct{}) (Decl, bool) {
+	println("---predefineNow2")
 	pkg := packageOf(last)
 	// pre-register d.GetName() to detect circular definition.
 	for _, dn := range d.GetDeclNames() {
+		if packageOf(last).PkgPath != uversePkgPath {
+			m[dn] = struct{}{}
+		}
 		if isUverseName(dn) {
 			panic(fmt.Sprintf(
 				"builtin identifiers cannot be shadowed: %s", dn))
@@ -3349,6 +3355,7 @@ func constUntypedBigint(source Expr, i64 int64) *ConstExpr {
 }
 
 func fillNameExprPath(last BlockNode, nx *NameExpr, isDefineLHS bool) {
+	//fmt.Println("---fillNameExprPath, last, name: ", last, nx.Name)
 	if nx.Name == "_" {
 		// Blank name has no path; caller error.
 		panic("should not happen")

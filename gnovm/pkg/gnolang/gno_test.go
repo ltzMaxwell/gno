@@ -34,13 +34,13 @@ func setupMachine(b *testing.B, numValues, numStmts, numExprs, numBlocks, numFra
 	return m
 }
 
-func BenchmarkStringLargeData(b *testing.B) {
-	m := setupMachine(b, 10000, 5000, 5000, 2000, 3000, 1000)
-
-	for i := 0; i < b.N; i++ {
-		_ = m.String()
-	}
-}
+//func BenchmarkStringLargeData(b *testing.B) {
+//	m := setupMachine(b, 10000, 5000, 5000, 2000, 3000, 1000)
+//
+//	for i := 0; i < b.N; i++ {
+//		_ = m.String()
+//	}
+//}
 
 func TestRunInvalidLabels(t *testing.T) {
 	tests := []struct {
@@ -396,6 +396,7 @@ func main() {
 // Benchmarks
 
 func BenchmarkPreprocess(b *testing.B) {
+	println("---benchmark preprocess")
 	pkg := &PackageNode{
 		PkgName: "main",
 		PkgPath: ".main",
@@ -419,6 +420,7 @@ func BenchmarkPreprocess(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		main = Preprocess(nil, pkg, copies[i]).(*FuncDecl)
 	}
+	println("---bench preprocess done!")
 }
 
 type bdataParams struct {
@@ -427,6 +429,7 @@ type bdataParams struct {
 }
 
 func BenchmarkBenchdata(b *testing.B) {
+	println("---bench data start")
 	const bdDir = "./benchdata"
 	files, err := os.ReadDir(bdDir)
 	require.NoError(b, err)

@@ -65,22 +65,99 @@ var (
 
 const uversePkgPath = ".uverse"
 
+var done bool
+
 // Always returns a new copy from the latest state of source.
 func Uverse() *PackageValue {
-	if uverseValue == nil {
-		pn := UverseNode()
-		uverseValue = pn.NewPackage()
+	println("---uverse()")
+	//if done {
+	//	panic("done Uverse()!!!")
+	//}
+	if uverseValue == nil || !done {
+		//if uverseValue == nil {
+		println("---nil, make new one")
+		uverseValue = UverseNode().NewPackage()
 	}
+	fmt.Println("---uverseValue: ", uverseValue)
+	fmt.Printf("---addr: uverseValue, %p \n: ", uverseValue)
+
 	return uverseValue
 }
 
 // Always returns the same instance with possibly differing completeness.
-func UverseNode() *PackageNode {
+func UverseNodeNonNative() *PackageNode {
+	fmt.Println("---UverseNodeNonNative")
 	// Global is singleton.
 	if uverseNode != nil {
+		fmt.Printf("uverseNode not nil !!!, pointer of it is %p \n", uverseNode)
 		return uverseNode
 	}
 
+	println("uverseNode is nil, make one !!!")
+	// NOTE: uverse node is hidden, thus the leading dot in pkgPath=".uverse".
+	uverseNode = NewPackageNode("uverse", uversePkgPath, nil)
+
+	// temporary convenience functions.
+	def := func(n Name, tv TypedValue) {
+		uverseNode.Define(n, tv)
+	}
+
+	// Primitive types
+	undefined := TypedValue{}
+	def("._", undefined)   // special, path is zero.
+	def("iota", undefined) // special
+	def("nil", undefined)
+	def("bigint", asValue(BigintType))
+	def("bool", asValue(BoolType))
+	def("byte", asValue(Uint8Type))
+	def("float32", asValue(Float32Type))
+	def("float64", asValue(Float64Type))
+	def("int", asValue(IntType))
+	def("int8", asValue(Int8Type))
+	def("int16", asValue(Int16Type))
+	def("int32", asValue(Int32Type))
+	def("int64", asValue(Int64Type))
+	def("rune", asValue(Int32Type))
+	def("string", asValue(StringType))
+	def("uint", asValue(UintType))
+	def("uint8", asValue(Uint8Type))
+	def("uint16", asValue(Uint16Type))
+	def("uint32", asValue(Uint32Type))
+	def("uint64", asValue(Uint64Type))
+	// NOTE on 'typeval': We can't call the type of a TypeValue a
+	// "type", even though we want to, because it conflicts with
+	// the pre-existing syntax for type-switching, `switch
+	// x.(type) {case SomeType:...}`, for if x.(type) were not a
+	// type-switch but a type-assertion, and the resulting value
+	// could be any type, such as an IntType; whereas as the .X of
+	// a SwitchStmt, the type of an IntType value is not IntType
+	// but always a TypeType (all types are of type TypeType).
+	//
+	// The ideal solution is to keep the syntax consistent for
+	// type-assertions, but for backwards compatibility, the
+	// keyword that represents the TypeType type is not "type" but
+	// "typeval".  The value of a "typeval" value is represented
+	// by a TypeValue.
+	def("typeval", asValue(gTypeType))
+	def("error", asValue(gErrorType))
+
+	// Values
+	def("true", untypedBool(true))
+	def("false", untypedBool(false))
+
+	return uverseNode
+}
+
+// Always returns the same instance with possibly differing completeness.
+func UverseNode() *PackageNode {
+	fmt.Println("---UverseNode initializing!!!, uverseNode: ", uverseNode)
+	// Global is singleton.
+	if uverseNode != nil {
+		fmt.Printf("uverseNode not nil !!!, pointer of it is %p \n", uverseNode)
+		return uverseNode
+	}
+
+	println("uverseNode is nil, make one !!!")
 	// NOTE: uverse node is hidden, thus the leading dot in pkgPath=".uverse".
 	uverseNode = NewPackageNode("uverse", uversePkgPath, nil)
 
@@ -587,6 +664,7 @@ func UverseNode() *PackageNode {
 			}
 		},
 	)
+	println("---append complete, going to next, cap")
 	defNative("cap",
 		Flds( // params
 			"x", AnyT(),
@@ -605,6 +683,8 @@ func UverseNode() *PackageNode {
 			return
 		},
 	)
+	println("---cap complete, going to next, cap")
+
 	def("close", undefined)
 	def("complex", undefined)
 	defNative("copy",
@@ -937,6 +1017,8 @@ func UverseNode() *PackageNode {
 			panic(xv.Sprint(m))
 		},
 	)
+	println("------done panic!!!")
+
 	defNative("print",
 		Flds( // params
 			"xs", Vrd(AnyT()), // args[0]
@@ -979,6 +1061,7 @@ func UverseNode() *PackageNode {
 			m.Output.Write([]byte(rs))
 		},
 	)
+	println("------done println init!!!")
 	defNative("recover",
 		nil, // params
 		Flds( // results
@@ -1015,6 +1098,8 @@ func UverseNode() *PackageNode {
 			m.Exceptions = nil
 		},
 	)
+
+	done = true
 	return uverseNode
 }
 

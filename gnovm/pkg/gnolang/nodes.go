@@ -1398,6 +1398,7 @@ func (x *PackageNode) DefineNative(n Name, ps, rs FieldTypeExprs, native func(*M
 	if debug {
 		debug.Printf("*PackageNode.DefineNative(%s,...)\n", n)
 	}
+	fmt.Printf("*PackageNode.DefineNative(%s,...)\n", n)
 	if native == nil {
 		panic("DefineNative expects a function, but got nil")
 	}
@@ -1662,6 +1663,7 @@ func (sb *StaticBlock) GetStaticTypeOf(store Store, n Name) Type {
 	idx, ok := sb.GetLocalIndex(n)
 	ts := sb.Types
 	bp := sb.GetParentNode(store)
+
 	for {
 		if ok {
 			return ts[idx]

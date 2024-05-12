@@ -842,13 +842,16 @@ func (pv *PackageValue) deriveFBlocksMap(store Store) {
 }
 
 func (pv *PackageValue) GetBlock(store Store) *Block {
+	fmt.Println("---GetBlock")
 	bv := pv.Block
 	switch bv := bv.(type) {
 	case RefValue:
+		println("---ref block")
 		bb := store.GetObject(bv.ObjectID).(*Block)
 		pv.Block = bb
 		return bb
 	case *Block:
+		println("---block")
 		return bv
 	default:
 		panic("should not happen")
@@ -856,6 +859,8 @@ func (pv *PackageValue) GetBlock(store Store) *Block {
 }
 
 func (pv *PackageValue) GetValueAt(store Store, path ValuePath) TypedValue {
+	fmt.Printf("---GetValueAt, pv is %v, addr: %p : \n", pv, pv)
+	fmt.Println("---GetValueAt, store : ", store)
 	return *(pv.
 		GetBlock(store).
 		GetPointerTo(store, path).
@@ -2332,6 +2337,13 @@ func (b *Block) GetParent(store Store) *Block {
 }
 
 func (b *Block) GetPointerToInt(store Store, index int) PointerValue {
+	//fmt.Println("--GetPointerToInt, index: ", index)
+	//fmt.Println("--GetPointerToInt, len(Values): ", len(b.Values))
+	//fmt.Printf("pointer of b is: %p \n", b)
+	////for i, v := range b.Values {
+	////	fmt.Printf("---values[%d] is %v: \n", i, v)
+	////}
+	//fmt.Println("---isUverseComplete", done)
 	vv := fillValueTV(store, &b.Values[index])
 	return PointerValue{
 		TV:    vv,
