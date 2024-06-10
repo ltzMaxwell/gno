@@ -5,6 +5,7 @@ import (
 )
 
 func (m *Machine) doOpValueDecl() {
+	//fmt.Println("---doOpDecl")
 	s := m.PopStmt().(*ValueDecl)
 	lb := m.LastBlock()
 	nt := Type(nil)
@@ -59,6 +60,8 @@ func (m *Machine) doOpValueDecl() {
 			ConvertUntypedTo(&tv, nil)
 		}
 		nx := s.NameExprs[i]
+
+		//fmt.Println("---nx: ", nx)
 		ptr := lb.GetPointerTo(m.Store, nx.Path)
 		ptr.Assign2(m.Alloc, m.Store, m.Realm, tv, false)
 	}

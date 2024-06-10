@@ -220,6 +220,7 @@ func (m *Machine) SetActivePackage(pv *PackageValue) {
 // NOTE: package paths not beginning with gno.land will be allowed to override,
 // to support cases of stdlibs processed through [RunMemPackagesWithOverrides].
 func (m *Machine) PreprocessAllFilesAndSaveBlockNodes() {
+	fmt.Println("---PreprocessAllFilesAndSaveBlockNodes")
 	ch := m.Store.IterMemPackage()
 	for memPkg := range ch {
 		fset := ParseMemPackage(memPkg)
@@ -228,6 +229,8 @@ func (m *Machine) PreprocessAllFilesAndSaveBlockNodes() {
 		PredefineFileSet(m.Store, pn, fset)
 		for _, fn := range fset.Files {
 			// Save Types to m.Store (while preprocessing).
+			// TODO: varloop Preprocess
+			// TODO: general preprocess
 			fn = Preprocess(m.Store, pn, fn).(*FileNode)
 			// Save BlockNodes to m.Store.
 			SaveBlockNodes(m.Store, fn)
@@ -498,6 +501,7 @@ func (m *Machine) RunFiles(fns ...*FileNode) {
 }
 
 func (m *Machine) runFiles(fns ...*FileNode) {
+	fmt.Println("---runFiles")
 	// Files' package names must match the machine's active one.
 	// if there is one.
 	for _, fn := range fns {
@@ -529,7 +533,7 @@ func (m *Machine) runFiles(fns ...*FileNode) {
 
 	// Predefine declarations across all files.
 	PredefineFileSet(m.Store, pn, fs)
-
+	println("---after predefine fileset")
 	// Preprocess each new file.
 	for _, fn := range fns {
 		// Preprocess file.
@@ -540,6 +544,7 @@ func (m *Machine) runFiles(fns ...*FileNode) {
 		// non-constant var declarations and file-level imports
 		// are re-set in runDeclaration(,true).
 		fn = Preprocess(m.Store, pn, fn).(*FileNode)
+		fmt.Println("---fn after preprocess: ", fn)
 		if debug {
 			debug.Printf("PREPROCESSED FILE: %v\n", fn)
 		}
