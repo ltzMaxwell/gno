@@ -2080,10 +2080,12 @@ func (m *Machine) PushForPointer(lx Expr) {
 }
 
 func (m *Machine) PopAsPointer(lx Expr) PointerValue {
+	fmt.Println("---PopAsPointer, lx: ", lx)
 	switch lx := lx.(type) {
 	case *NameExpr:
 		switch lx.Type {
 		case NameExprTypeNormal:
+			fmt.Println("---normal")
 			lb := m.LastBlock()
 			return lb.GetPointerTo(m.Store, lx.Path)
 		case NameExprTypeHeapUse:
