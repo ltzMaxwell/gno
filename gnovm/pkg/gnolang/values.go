@@ -770,6 +770,7 @@ func (mv *MapValue) GetLength() int {
 // doesn't exist, a new slot is created.
 func (mv *MapValue) GetPointerForKey(alloc *Allocator, store Store, key *TypedValue) PointerValue {
 	kmk := key.ComputeMapKey(store, false)
+	//fmt.Println("---kmk: ", kmk)
 	if mli, ok := mv.vmap[kmk]; ok {
 		key2 := key.Copy(alloc)
 		return PointerValue{
@@ -781,7 +782,9 @@ func (mv *MapValue) GetPointerForKey(alloc *Allocator, store Store, key *TypedVa
 	}
 	mli := mv.List.Append(alloc, *key)
 	mv.vmap[kmk] = mli
+
 	key2 := key.Copy(alloc)
+	//fmt.Println("---key2: ", key2)
 	return PointerValue{
 		TV:    fillValueTV(store, &mli.Value),
 		Base:  mv,
@@ -794,6 +797,7 @@ func (mv *MapValue) GetPointerForKey(alloc *Allocator, store Store, key *TypedVa
 // doesn't exist.
 func (mv *MapValue) GetValueForKey(store Store, key *TypedValue) (val TypedValue, ok bool) {
 	kmk := key.ComputeMapKey(store, false)
+	fmt.Println("---kmk: ", kmk)
 	if mli, exists := mv.vmap[kmk]; exists {
 		fillValueTV(store, &mli.Value)
 		val, ok = mli.Value, true
@@ -1558,8 +1562,17 @@ func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
 		pbz := tv.PrimitiveBytes()
 		bz = append(bz, pbz...)
 	case *PointerType:
-		ptr := uintptr(unsafe.Pointer(tv.V.(PointerValue).TV))
-		bz = append(bz, uintptrToBytes(&ptr)...)
+		//ptr := uintptr(unsafe.Pointer(tv.V.(PointerValue).TV))
+		//fmt.Println("---ptr: ", ptr)
+		//fmt.Println("---Ptr.TV: ", tv.V.(PointerValue).TV)
+		if tv.V.(PointerValue).TV != nil {
+			return tv.V.(PointerValue).TV.ComputeMapKey(store, omitType)
+		} else {
+			panic("should not happen")
+			//pbz := tv.V.(PointerValue).TV.PrimitiveBytes()
+			//bz = append(bz, pbz...)
+		}
+		//bz = append(bz, uintptrToBytes(&ptr)...)
 	case FieldType:
 		panic("field (pseudo)type cannot be used as map key")
 	case *ArrayType:
@@ -1967,6 +1980,10 @@ func (tv *TypedValue) GetPointerAtIndexInt(store Store, ii int) PointerValue {
 }
 
 func (tv *TypedValue) GetPointerAtIndex(alloc *Allocator, store Store, iv *TypedValue) PointerValue {
+	//fmt.Println("---GetPointerAtIndex, iv: ", iv, reflect.TypeOf(iv.V))
+	//if p, ok := iv.V.(PointerValue); ok {
+	//	fmt.Println("base: ", p.GetBase(store))
+	//}
 	switch bt := baseOf(tv.T).(type) {
 	case PrimitiveType:
 		if bt == StringType || bt == UntypedStringType {

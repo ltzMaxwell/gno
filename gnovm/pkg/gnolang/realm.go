@@ -664,8 +664,6 @@ func (rlm *Realm) saveUnsavedObjects(store Store) {
 		}
 	}
 	for _, uo := range rlm.updated {
-		// for i := len(rlm.updated) - 1; i >= 0; i-- {
-		// uo := rlm.updated[i]
 		if !uo.GetIsDirty() {
 			// might have happened already as child
 			// of something else created/dirty.
@@ -1080,13 +1078,6 @@ func copyValueWithRefs(val Value) Value {
 			panic("should not happen")
 		}
 		return PointerValue{
-			/*
-				already represented in .Base[Index]:
-				TypedValue: &TypedValue{
-					T: cv.TypedValue.T,
-					V: copyValueWithRefs(cv.TypedValue.V),
-				},
-			*/
 			Base:  toRefValue(cv.Base),
 			Index: cv.Index,
 		}
@@ -1162,7 +1153,27 @@ func copyValueWithRefs(val Value) Value {
 	case *MapValue:
 		list := &MapList{}
 		for cur := cv.List.Head; cur != nil; cur = cur.Next {
-			key2 := refOrCopyValue(cur.Key)
+			//fmt.Println("---cur.Key: ", cur.Key)
+			var key2 TypedValue
+			if p, ok := cur.Key.V.(PointerValue); ok {
+				//fmt.Println("---pointer value", p)
+				pv := PointerValue{
+					Base:  toRefValue(p.Base),
+					Index: p.Index,
+				}
+
+				if hiv, ok := p.Base.(*HeapItemValue); ok {
+					pv.TV = &hiv.Value
+				} else if b, ok := p.Base.(*Block); ok {
+					pv.TV = &b.Values[p.Index]
+				}
+
+				key2.V = pv
+				key2.T = &PointerType{Elt: cur.Key.T}
+			} else {
+				key2 = cur.Key
+			}
+			//fmt.Println("---2, key2: ", key2)
 			val2 := refOrCopyValue(cur.Value)
 			list.Append(nilAllocator, key2).Value = val2
 		}
