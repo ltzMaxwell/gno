@@ -1,5 +1,5 @@
-// PKGPATH: gno.land/r/crossrealm_test
-package crossrealm_test
+// PKGPATH: gno.land/r/ptr_slice
+package ptr_slice
 
 var (
 	li = []*int{}

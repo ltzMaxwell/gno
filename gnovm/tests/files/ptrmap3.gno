@@ -1,5 +1,5 @@
-// PKGPATH: gno.land/r/crossrealm_test
-package crossrealm_test
+// PKGPATH: gno.land/r/ptr_map
+package ptr_map
 
 var mapus map[uint64]string = make(map[uint64]string)
 

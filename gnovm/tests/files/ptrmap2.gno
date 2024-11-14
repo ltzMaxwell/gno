@@ -1,5 +1,5 @@
-// PKGPATH: gno.land/r/crossrealm_test
-package crossrealm_test
+// PKGPATH: gno.land/r/ptr_map
+package ptr_map
 
 var (
 	m = map[**int]int{}

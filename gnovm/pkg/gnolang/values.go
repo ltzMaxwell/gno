@@ -770,7 +770,7 @@ func (mv *MapValue) GetLength() int {
 // doesn't exist, a new slot is created.
 func (mv *MapValue) GetPointerForKey(alloc *Allocator, store Store, key *TypedValue) PointerValue {
 	kmk := key.ComputeMapKey(store, false)
-	//fmt.Println("---kmk: ", kmk)
+	// fmt.Println("---kmk: ", kmk)
 	if mli, ok := mv.vmap[kmk]; ok {
 		key2 := key.Copy(alloc)
 		return PointerValue{
@@ -784,7 +784,7 @@ func (mv *MapValue) GetPointerForKey(alloc *Allocator, store Store, key *TypedVa
 	mv.vmap[kmk] = mli
 
 	key2 := key.Copy(alloc)
-	//fmt.Println("---key2: ", key2)
+	// fmt.Println("---key2: ", key2)
 	return PointerValue{
 		TV:    fillValueTV(store, &mli.Value),
 		Base:  mv,
@@ -1562,17 +1562,17 @@ func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
 		pbz := tv.PrimitiveBytes()
 		bz = append(bz, pbz...)
 	case *PointerType:
-		//ptr := uintptr(unsafe.Pointer(tv.V.(PointerValue).TV))
-		//fmt.Println("---ptr: ", ptr)
-		//fmt.Println("---Ptr.TV: ", tv.V.(PointerValue).TV)
+		// ptr := uintptr(unsafe.Pointer(tv.V.(PointerValue).TV))
+		// fmt.Println("---ptr: ", ptr)
+		// fmt.Println("---Ptr.TV: ", tv.V.(PointerValue).TV)
 		if tv.V.(PointerValue).TV != nil {
 			return tv.V.(PointerValue).TV.ComputeMapKey(store, omitType)
 		} else {
 			panic("should not happen")
-			//pbz := tv.V.(PointerValue).TV.PrimitiveBytes()
-			//bz = append(bz, pbz...)
+			// pbz := tv.V.(PointerValue).TV.PrimitiveBytes()
+			// bz = append(bz, pbz...)
 		}
-		//bz = append(bz, uintptrToBytes(&ptr)...)
+		// bz = append(bz, uintptrToBytes(&ptr)...)
 	case FieldType:
 		panic("field (pseudo)type cannot be used as map key")
 	case *ArrayType:
