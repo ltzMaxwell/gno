@@ -446,7 +446,7 @@ func (m *Machine) TestMemPackage(t *testing.T, memPkg *gnovm.MemPackage) {
 // starts with `Test`.
 func (m *Machine) TestFunc(t *testing.T, tv TypedValue) {
 	if !(tv.T.Kind() == FuncKind &&
-		strings.HasPrefix(string(tv.V.(*FuncValue).Name), "Test")) {
+			strings.HasPrefix(string(tv.V.(*FuncValue).Name), "Test")) {
 		return // not a test function.
 	}
 	// XXX ensure correct func type.
@@ -505,19 +505,21 @@ func (m *Machine) Stacktrace() (stacktrace Stacktrace) {
 	}
 
 	calls := make([]StacktraceCall, 0, len(m.Stmts))
-	nextStmtIndex := len(m.Stmts) - 1
-	for i := len(m.Frames) - 1; i >= 0; i-- {
-		if m.Frames[i].IsCall() {
-			stm := m.Stmts[nextStmtIndex]
-			bs := stm.(*bodyStmt)
-			stm = bs.Body[bs.NextBodyIndex-1]
-			calls = append(calls, StacktraceCall{
-				Stmt:  stm,
-				Frame: m.Frames[i],
-			})
+	if len(m.Stmts) > 1 {
+		nextStmtIndex := len(m.Stmts) - 1
+		for i := len(m.Frames) - 1; i >= 0; i-- {
+			if m.Frames[i].IsCall() {
+				stm := m.Stmts[nextStmtIndex]
+				bs := stm.(*bodyStmt)
+				stm = bs.Body[bs.NextBodyIndex-1]
+				calls = append(calls, StacktraceCall{
+					Stmt:  stm,
+					Frame: m.Frames[i],
+				})
+			}
+			// if the frame is a call, the next statement is the last statement of the frame.
+			nextStmtIndex = m.Frames[i].NumStmts - 1
 		}
-		// if the frame is a call, the next statement is the last statement of the frame.
-		nextStmtIndex = m.Frames[i].NumStmts - 1
 	}
 
 	// if the stacktrace is too long, we trim it down to maxStacktraceSize
