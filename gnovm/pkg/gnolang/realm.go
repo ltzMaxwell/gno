@@ -134,6 +134,8 @@ func (rlm *Realm) String() string {
 // xo or co is nil if the element value is undefined or has no
 // associated object.
 func (rlm *Realm) DidUpdate(po, xo, co Object) {
+	fmt.Println("---DidUpdate, po: ", po)
+	fmt.Println("---co: ", co)
 	if rlm == nil {
 		return
 	}
@@ -293,6 +295,7 @@ func (rlm *Realm) MarkNewEscaped(oo Object) {
 
 // OpReturn calls this when exiting a realm transaction.
 func (rlm *Realm) FinalizeRealmTransaction(readonly bool, store Store) {
+	fmt.Println("---FInalizeRealmTransaction---")
 	if readonly {
 		if true ||
 			len(rlm.newCreated) > 0 ||
@@ -358,8 +361,10 @@ func (rlm *Realm) FinalizeRealmTransaction(readonly bool, store Store) {
 // All newly created objects become appended to .created,
 // and get assigned ids.
 func (rlm *Realm) processNewCreatedMarks(store Store) {
+	fmt.Println("---ProcessNewCreatedMarks---")
 	// Create new objects and their new descendants.
 	for _, oo := range rlm.newCreated {
+		fmt.Println("---oo: ", oo)
 		if debug {
 			if oo.GetIsDirty() {
 				panic("new created mark cannot be dirty")
@@ -523,6 +528,7 @@ func (rlm *Realm) decRefDeletedDescendants(store Store, oo Object) {
 // objects get their original owners marked dirty (to be further
 // marked via markDirtyAncestors).
 func (rlm *Realm) processNewEscapedMarks(store Store) {
+	fmt.Println("---processNewEscapedMarks")
 	escaped := make([]Object, 0, len(rlm.newEscaped))
 	// These are those marked by MarkNewEscaped(),
 	// regardless of whether new-real or was real,
@@ -531,6 +537,7 @@ func (rlm *Realm) processNewEscapedMarks(store Store) {
 	// except for new-reals that get demoted
 	// because ref-count isn't >= 2.
 	for _, eo := range rlm.newEscaped {
+		fmt.Println("---eo: ", eo)
 		if debug {
 			if !eo.GetIsNewEscaped() {
 				panic("new escaped mark not marked as new escaped")
@@ -652,7 +659,9 @@ func (rlm *Realm) markDirtyAncestors(store Store) {
 
 // Saves .created and .updated objects.
 func (rlm *Realm) saveUnsavedObjects(store Store) {
+	fmt.Println("---saveUnsavedObjects")
 	for _, co := range rlm.created {
+		fmt.Println("---co: ", co)
 		// for i := len(rlm.created) - 1; i >= 0; i-- {
 		// co := rlm.created[i]
 		if !co.GetIsNewReal() {
@@ -664,6 +673,7 @@ func (rlm *Realm) saveUnsavedObjects(store Store) {
 		}
 	}
 	for _, uo := range rlm.updated {
+		fmt.Println("---uo: ", uo)
 		if !uo.GetIsDirty() {
 			// might have happened already as child
 			// of something else created/dirty.
@@ -730,6 +740,7 @@ func (rlm *Realm) saveUnsavedObjectRecursively(store Store, oo Object) {
 }
 
 func (rlm *Realm) saveObject(store Store, oo Object) {
+	fmt.Println("---saveObject, oo: ", oo)
 	oid := oo.GetObjectID()
 	if oid.IsZero() {
 		panic("unexpected zero object id")
@@ -1062,6 +1073,7 @@ func copyTypeWithRefs(typ Type) Type {
 // Also checks for integrity of immediate children -- they must already be
 // persistent (real), and not dirty, or else this function panics.
 func copyValueWithRefs(val Value) Value {
+	fmt.Println("---copyValueWithRefs, val: ", val, reflect.TypeOf(val))
 	switch cv := val.(type) {
 	case nil:
 		return nil
@@ -1082,6 +1094,7 @@ func copyValueWithRefs(val Value) Value {
 			Index: cv.Index,
 		}
 	case *ArrayValue:
+		println("---ArrayValue")
 		if cv.Data == nil {
 			list := make([]TypedValue, len(cv.List))
 			for i, etv := range cv.List {
@@ -1531,13 +1544,16 @@ func ensureUniq(oozz ...[]Object) {
 }
 
 func refOrCopyValue(tv TypedValue) TypedValue {
+	fmt.Println("---refOrCopyValue, tv: ", tv)
 	if tv.T != nil {
 		tv.T = refOrCopyType(tv.T)
 	}
 	if obj, ok := tv.V.(Object); ok {
+		println("---object")
 		tv.V = toRefValue(obj)
 		return tv
 	} else {
+		println("---NOT object")
 		tv.V = copyValueWithRefs(tv.V)
 		return tv
 	}

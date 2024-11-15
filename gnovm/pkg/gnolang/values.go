@@ -1,6 +1,7 @@
 package gnolang
 
 import (
+	"encoding/base64"
 	"encoding/binary"
 	"fmt"
 	"math"
@@ -8,6 +9,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"unicode"
 	"unsafe"
 
 	"github.com/cockroachdb/apd/v3"
@@ -359,6 +361,7 @@ func (av *ArrayValue) GetLength() int {
 
 // et is only required for .List byte-arrays.
 func (av *ArrayValue) GetPointerAtIndexInt2(store Store, ii int, et Type) PointerValue {
+	fmt.Println("---GetPointerAtIndexInt2, ii: ", ii)
 	if av.Data == nil {
 		ev := fillValueTV(store, &av.List[ii]) // by reference
 		return PointerValue{
@@ -771,7 +774,7 @@ func (mv *MapValue) GetLength() int {
 func (mv *MapValue) GetPointerForKey(alloc *Allocator, store Store, key *TypedValue) PointerValue {
 	fmt.Println("---GetPointerForKey, key: ", key)
 	kmk := key.ComputeMapKey(store, false)
-	fmt.Println("---kmk: ", kmk)
+	fmt.Println("---kmk1: ", kmk)
 	if mli, ok := mv.vmap[kmk]; ok {
 		key2 := key.Copy(alloc)
 		return PointerValue{
@@ -799,7 +802,7 @@ func (mv *MapValue) GetPointerForKey(alloc *Allocator, store Store, key *TypedVa
 func (mv *MapValue) GetValueForKey(store Store, key *TypedValue) (val TypedValue, ok bool) {
 	fmt.Println("---GetValueForKey, key: ", key)
 	kmk := key.ComputeMapKey(store, false)
-	fmt.Println("---kmk: ", kmk)
+	fmt.Println("---kmk2: ", kmk)
 	if mli, exists := mv.vmap[kmk]; exists {
 		fillValueTV(store, &mli.Value)
 		val, ok = mli.Value, true
@@ -1077,6 +1080,8 @@ func (tv TypedValue) unrefCopy(alloc *Allocator, store Store) (cp TypedValue) {
 // These bytes are used for both value hashes as well
 // as hash key bytes.
 func (tv *TypedValue) PrimitiveBytes() (data []byte) {
+	fmt.Println("---Primitive Bytes, tv: ", tv.V)
+	fmt.Println("---type of tv: ", reflect.TypeOf(tv))
 	switch bt := baseOf(tv.T); bt {
 	case BoolType:
 		if tv.GetBool() {
@@ -1084,6 +1089,7 @@ func (tv *TypedValue) PrimitiveBytes() (data []byte) {
 		}
 		return []byte{0x00}
 	case StringType:
+		fmt.Println("---str : ", tv.GetString())
 		return []byte(tv.GetString())
 	case Int8Type:
 		return []byte{uint8(tv.GetInt8())}
@@ -1101,6 +1107,7 @@ func (tv *TypedValue) PrimitiveBytes() (data []byte) {
 		data = make([]byte, 8)
 		binary.LittleEndian.PutUint64(
 			data, uint64(tv.GetInt()))
+		fmt.Println("---Int : ", data)
 		return data
 	case Uint8Type:
 		return []byte{tv.GetUint8()}
@@ -1543,6 +1550,27 @@ func (tv *TypedValue) AssertNonNegative(msg string) {
 	}
 }
 
+func printableOrRaw(byteSlice []byte) string {
+	// Check if all bytes are printable characters
+	allPrintable := true
+	for _, b := range byteSlice {
+		if !unicode.IsPrint(rune(b)) {
+			allPrintable = false
+			break
+		}
+	}
+
+	// If all bytes are printable, return the string
+	if allPrintable {
+		return string(byteSlice)
+	}
+
+	// Otherwise, return a hexadecimal or base64 representation of the raw byte slice
+	// You can choose hex or base64 depending on your preference
+	// return hex.EncodeToString(byteSlice)    // For hex
+	return base64.StdEncoding.EncodeToString(byteSlice) // For base64
+}
+
 func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
 	fmt.Println("---ComputeMapKey, tv: type of tv.V: ", tv, reflect.TypeOf(tv.V))
 	// Special case when nil: has no separator.
@@ -1557,25 +1585,53 @@ func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
 	// General case.
 	bz := make([]byte, 0, 64)
 	if !omitType {
+		println("---append types")
 		bz = append(bz, tv.T.TypeID().Bytes()...)
 		bz = append(bz, ':') // type/value separator
 	}
 	switch bt := baseOf(tv.T).(type) {
 	case PrimitiveType:
 		pbz := tv.PrimitiveBytes()
+		fmt.Println("---pbz: ", pbz)
 		bz = append(bz, pbz...)
+		fmt.Println("---bz: ", bz)
+		fmt.Println("---mapkey: ", MapKey(bz))
 	case *PointerType:
-		// ptr := uintptr(unsafe.Pointer(tv.V.(PointerValue).TV))
-		// fmt.Println("---ptr: ", ptr)
-		// fmt.Println("---Ptr.TV: ", tv.V.(PointerValue).TV)
+		//ptr := uintptr(unsafe.Pointer(tv.V.(PointerValue).TV))
+
+		//fmt.Println("---base: \n", []byte(tv.V.(PointerValue).Base.String()))
+		//baseStr := tv.V.(PointerValue).Base.String()
+		//indexStr := strconv.Itoa(tv.V.(PointerValue).Index)
+		//pbz := []byte(baseStr + indexStr)
+		//fmt.Println("---pbz :", pbz)
+
+		//// fmt.Println("---ptr: ", ptr)
+		fmt.Println("---Ptr.TV: ", tv.V.(PointerValue).TV)
 		if tv.V.(PointerValue).TV != nil {
-			return tv.V.(PointerValue).TV.ComputeMapKey(store, omitType)
+			if rv, ok := tv.V.(PointerValue).TV.V.(RefValue); ok {
+				fmt.Println("---rv: ", rv)
+				fmt.Println("---rv.ObjectID: ", rv.ObjectID)
+				oo := store.GetObject(rv.ObjectID)
+				fmt.Println("---oo: ", oo)
+
+				fillValueTV(store, tv.V.(PointerValue).TV)
+				fmt.Println("---after fill: ", tv.V.(PointerValue).TV)
+				//key2 := tv.V.(PointerValue).TV.ComputeMapKey(store, omitType)
+				//fmt.Println("---key2: ", key2)
+				//bz = append(bz, []byte(key2)...)
+				return tv.V.(PointerValue).TV.ComputeMapKey(store, omitType)
+			} else {
+				return tv.V.(PointerValue).TV.ComputeMapKey(store, omitType)
+			}
 		} else {
 			panic("should not happen")
 			// pbz := tv.V.(PointerValue).TV.PrimitiveBytes()
 			// bz = append(bz, pbz...)
 		}
-		// bz = append(bz, uintptrToBytes(&ptr)...)
+		//bz = append(bz, pbz...)
+		//fmt.Println("---bz: ", bz)
+
+		//bz = append(bz, uintptrToBytes(&ptr)...)
 	case FieldType:
 		panic("field (pseudo)type cannot be used as map key")
 	case *ArrayType:
@@ -1598,12 +1654,18 @@ func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
 	case *SliceType:
 		panic("slice type cannot be used as map key")
 	case *StructType:
+		println("---struct type")
 		sv := tv.V.(*StructValue)
 		sl := len(sv.Fields)
 		bz = append(bz, '{')
 		for i := 0; i < sl; i++ {
 			fv := fillValueTV(store, &sv.Fields[i])
+			fmt.Println("---fv: ", fv, reflect.TypeOf(fv))
 			omitTypes := bt.Fields[i].Type.Kind() != InterfaceKind
+			//fmt.Println("---omitTypes: ", omitTypes)
+			//temp := fv.ComputeMapKey(store, omitTypes)
+			//fmt.Println("---temp: ", temp)
+			//bz = append(bz, temp...)
 			bz = append(bz, fv.ComputeMapKey(store, omitTypes)...)
 			if i != sl-1 {
 				bz = append(bz, ',')
@@ -1628,7 +1690,9 @@ func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
 			"unexpected map key type %s",
 			tv.T.String()))
 	}
-	return MapKey(bz)
+	fmt.Println("---return mapkey: ", MapKey(printableOrRaw(bz)))
+	return (MapKey(printableOrRaw(bz)))
+	//return MapKey(bz)
 }
 
 // ----------------------------------------
@@ -1983,7 +2047,7 @@ func (tv *TypedValue) GetPointerAtIndexInt(store Store, ii int) PointerValue {
 }
 
 func (tv *TypedValue) GetPointerAtIndex(alloc *Allocator, store Store, iv *TypedValue) PointerValue {
-	//fmt.Println("---GetPointerAtIndex, iv: ", iv, reflect.TypeOf(iv.V))
+	fmt.Println("---GetPointerAtIndex, iv: ", iv, reflect.TypeOf(iv.V))
 	//if p, ok := iv.V.(PointerValue); ok {
 	//	fmt.Println("base: ", p.GetBase(store))
 	//}
@@ -2005,6 +2069,7 @@ func (tv *TypedValue) GetPointerAtIndex(alloc *Allocator, store Store, iv *Typed
 			"primitive type %s cannot be indexed",
 			tv.T.String()))
 	case *ArrayType:
+		println("---ArrayType")
 		av := tv.V.(*ArrayValue)
 		ii := iv.ConvertGetInt()
 		return av.GetPointerAtIndexInt2(store, ii, bt.Elt)
