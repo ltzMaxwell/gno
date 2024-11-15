@@ -386,11 +386,11 @@ func (ds *defaultStore) loadObjectSafe(oid ObjectID) Object {
 // NOTE: unlike GetObject(), SetObject() is also used to persist updated
 // package values.
 func (ds *defaultStore) SetObject(oo Object) {
-	// fmt.Println("---SetObject, oo: ", oo)
+	fmt.Println("---SetObject, oo: ", oo)
 	oid := oo.GetObjectID()
 	// replace children/fields with Ref.
 	o2 := copyValueWithRefs(oo)
-	// fmt.Println("---ref o2: ", o2)
+	fmt.Println("---ref o2: ", o2)
 	// marshal to binary.
 	bz := amino.MustMarshalAny(o2)
 	// set hash.

@@ -1153,10 +1153,10 @@ func copyValueWithRefs(val Value) Value {
 	case *MapValue:
 		list := &MapList{}
 		for cur := cv.List.Head; cur != nil; cur = cur.Next {
-			// fmt.Println("---cur.Key: ", cur.Key)
+			fmt.Println("---cur.Key: ", cur.Key)
 			var key2 TypedValue
 			if p, ok := cur.Key.V.(PointerValue); ok {
-				// fmt.Println("---pointer value", p)
+				fmt.Println("---pointer value", p)
 				pv := PointerValue{
 					Base:  toRefValue(p.Base),
 					Index: p.Index,
@@ -1173,7 +1173,7 @@ func copyValueWithRefs(val Value) Value {
 			} else {
 				key2 = cur.Key
 			}
-			// fmt.Println("---2, key2: ", key2)
+			fmt.Println("---2, key2: ", key2)
 			val2 := refOrCopyValue(cur.Value)
 			list.Append(nilAllocator, key2).Value = val2
 		}

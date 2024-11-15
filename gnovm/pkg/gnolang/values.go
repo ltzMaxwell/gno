@@ -769,8 +769,9 @@ func (mv *MapValue) GetLength() int {
 // do for structs and arrays for assigning new entries.  If key
 // doesn't exist, a new slot is created.
 func (mv *MapValue) GetPointerForKey(alloc *Allocator, store Store, key *TypedValue) PointerValue {
+	fmt.Println("---GetPointerForKey, key: ", key)
 	kmk := key.ComputeMapKey(store, false)
-	// fmt.Println("---kmk: ", kmk)
+	fmt.Println("---kmk: ", kmk)
 	if mli, ok := mv.vmap[kmk]; ok {
 		key2 := key.Copy(alloc)
 		return PointerValue{
@@ -796,6 +797,7 @@ func (mv *MapValue) GetPointerForKey(alloc *Allocator, store Store, key *TypedVa
 // Like GetPointerForKey, but does not create a slot if key
 // doesn't exist.
 func (mv *MapValue) GetValueForKey(store Store, key *TypedValue) (val TypedValue, ok bool) {
+	fmt.Println("---GetValueForKey, key: ", key)
 	kmk := key.ComputeMapKey(store, false)
 	fmt.Println("---kmk: ", kmk)
 	if mli, exists := mv.vmap[kmk]; exists {
@@ -1542,6 +1544,7 @@ func (tv *TypedValue) AssertNonNegative(msg string) {
 }
 
 func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
+	fmt.Println("---ComputeMapKey, tv: type of tv.V: ", tv, reflect.TypeOf(tv.V))
 	// Special case when nil: has no separator.
 	if tv.T == nil {
 		if debug {
