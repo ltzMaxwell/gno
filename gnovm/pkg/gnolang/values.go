@@ -213,6 +213,7 @@ func (pv *PointerValue) GetBase(store Store) Object {
 // TODO: document as something that enables into-native assignment.
 // TODO: maybe consider this as entrypoint for DataByteValue too?
 func (pv PointerValue) Assign2(alloc *Allocator, store Store, rlm *Realm, tv2 TypedValue, cu bool) {
+	//fmt.Println("---Assign2, tv: ", tv2)
 	// Special cases.
 	if pv.Index == PointerIndexNative {
 		// Special case if extended object && native.
@@ -253,7 +254,7 @@ func (pv PointerValue) Assign2(alloc *Allocator, store Store, rlm *Realm, tv2 Ty
 								panic("should not happen")
 							}
 							if nv, ok := tv2.V.(*NativeValue); !ok ||
-								nv.Value.Kind() != reflect.Func {
+									nv.Value.Kind() != reflect.Func {
 								panic("should not happen")
 							}
 						}
@@ -361,7 +362,6 @@ func (av *ArrayValue) GetLength() int {
 
 // et is only required for .List byte-arrays.
 func (av *ArrayValue) GetPointerAtIndexInt2(store Store, ii int, et Type) PointerValue {
-	fmt.Println("---GetPointerAtIndexInt2, ii: ", ii)
 	if av.Data == nil {
 		ev := fillValueTV(store, &av.List[ii]) // by reference
 		return PointerValue{
@@ -772,9 +772,9 @@ func (mv *MapValue) GetLength() int {
 // do for structs and arrays for assigning new entries.  If key
 // doesn't exist, a new slot is created.
 func (mv *MapValue) GetPointerForKey(alloc *Allocator, store Store, key *TypedValue) PointerValue {
-	fmt.Println("---GetPointerForKey, key: ", key)
+	//fmt.Println("---GetPointerForKey, key: ", key)
 	kmk := key.ComputeMapKey(store, false)
-	fmt.Println("---kmk1: ", kmk)
+	//fmt.Println("---kmk1: ", kmk)
 	if mli, ok := mv.vmap[kmk]; ok {
 		key2 := key.Copy(alloc)
 		return PointerValue{
@@ -800,9 +800,9 @@ func (mv *MapValue) GetPointerForKey(alloc *Allocator, store Store, key *TypedVa
 // Like GetPointerForKey, but does not create a slot if key
 // doesn't exist.
 func (mv *MapValue) GetValueForKey(store Store, key *TypedValue) (val TypedValue, ok bool) {
-	fmt.Println("---GetValueForKey, key: ", key)
+	//fmt.Println("---GetValueForKey, key: ", key)
 	kmk := key.ComputeMapKey(store, false)
-	fmt.Println("---kmk2: ", kmk)
+	//fmt.Println("---kmk2: ", kmk)
 	if mli, exists := mv.vmap[kmk]; exists {
 		fillValueTV(store, &mli.Value)
 		val, ok = mli.Value, true
@@ -1080,8 +1080,6 @@ func (tv TypedValue) unrefCopy(alloc *Allocator, store Store) (cp TypedValue) {
 // These bytes are used for both value hashes as well
 // as hash key bytes.
 func (tv *TypedValue) PrimitiveBytes() (data []byte) {
-	fmt.Println("---Primitive Bytes, tv: ", tv.V)
-	fmt.Println("---type of tv: ", reflect.TypeOf(tv))
 	switch bt := baseOf(tv.T); bt {
 	case BoolType:
 		if tv.GetBool() {
@@ -1089,7 +1087,6 @@ func (tv *TypedValue) PrimitiveBytes() (data []byte) {
 		}
 		return []byte{0x00}
 	case StringType:
-		fmt.Println("---str : ", tv.GetString())
 		return []byte(tv.GetString())
 	case Int8Type:
 		return []byte{uint8(tv.GetInt8())}
@@ -1107,7 +1104,6 @@ func (tv *TypedValue) PrimitiveBytes() (data []byte) {
 		data = make([]byte, 8)
 		binary.LittleEndian.PutUint64(
 			data, uint64(tv.GetInt()))
-		fmt.Println("---Int : ", data)
 		return data
 	case Uint8Type:
 		return []byte{tv.GetUint8()}
@@ -1572,7 +1568,11 @@ func printableOrRaw(byteSlice []byte) string {
 }
 
 func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
-	fmt.Println("---ComputeMapKey, tv: type of tv.V: ", tv, reflect.TypeOf(tv.V))
+	//fmt.Println("---ComputeMapKey, tv: type of tv.V: ", tv, reflect.TypeOf(tv.V))
+	// map key might pointer to refValue attached ahead
+	if _, ok := tv.V.(RefValue); ok {
+		fillValueTV(store, tv)
+	}
 	// Special case when nil: has no separator.
 	if tv.T == nil {
 		if debug {
@@ -1585,53 +1585,25 @@ func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
 	// General case.
 	bz := make([]byte, 0, 64)
 	if !omitType {
-		println("---append types")
+		//println("---append types")
 		bz = append(bz, tv.T.TypeID().Bytes()...)
 		bz = append(bz, ':') // type/value separator
 	}
 	switch bt := baseOf(tv.T).(type) {
 	case PrimitiveType:
 		pbz := tv.PrimitiveBytes()
-		fmt.Println("---pbz: ", pbz)
+		//fmt.Println("---pbz: ", pbz)
 		bz = append(bz, pbz...)
-		fmt.Println("---bz: ", bz)
-		fmt.Println("---mapkey: ", MapKey(bz))
+		//fmt.Println("---bz: ", bz)
+		//fmt.Println("---mapkey: ", MapKey(bz))
 	case *PointerType:
-		//ptr := uintptr(unsafe.Pointer(tv.V.(PointerValue).TV))
-
-		//fmt.Println("---base: \n", []byte(tv.V.(PointerValue).Base.String()))
-		//baseStr := tv.V.(PointerValue).Base.String()
-		//indexStr := strconv.Itoa(tv.V.(PointerValue).Index)
-		//pbz := []byte(baseStr + indexStr)
-		//fmt.Println("---pbz :", pbz)
-
-		//// fmt.Println("---ptr: ", ptr)
+		fmt.Println("---pointer value, tv.V: ", tv.V)
 		fmt.Println("---Ptr.TV: ", tv.V.(PointerValue).TV)
 		if tv.V.(PointerValue).TV != nil {
-			if rv, ok := tv.V.(PointerValue).TV.V.(RefValue); ok {
-				fmt.Println("---rv: ", rv)
-				fmt.Println("---rv.ObjectID: ", rv.ObjectID)
-				oo := store.GetObject(rv.ObjectID)
-				fmt.Println("---oo: ", oo)
-
-				fillValueTV(store, tv.V.(PointerValue).TV)
-				fmt.Println("---after fill: ", tv.V.(PointerValue).TV)
-				//key2 := tv.V.(PointerValue).TV.ComputeMapKey(store, omitType)
-				//fmt.Println("---key2: ", key2)
-				//bz = append(bz, []byte(key2)...)
-				return tv.V.(PointerValue).TV.ComputeMapKey(store, omitType)
-			} else {
-				return tv.V.(PointerValue).TV.ComputeMapKey(store, omitType)
-			}
+			return tv.V.(PointerValue).TV.ComputeMapKey(store, omitType)
 		} else {
 			panic("should not happen")
-			// pbz := tv.V.(PointerValue).TV.PrimitiveBytes()
-			// bz = append(bz, pbz...)
 		}
-		//bz = append(bz, pbz...)
-		//fmt.Println("---bz: ", bz)
-
-		//bz = append(bz, uintptrToBytes(&ptr)...)
 	case FieldType:
 		panic("field (pseudo)type cannot be used as map key")
 	case *ArrayType:
@@ -1660,7 +1632,7 @@ func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
 		bz = append(bz, '{')
 		for i := 0; i < sl; i++ {
 			fv := fillValueTV(store, &sv.Fields[i])
-			fmt.Println("---fv: ", fv, reflect.TypeOf(fv))
+			//fmt.Println("---fv: ", fv, reflect.TypeOf(fv))
 			omitTypes := bt.Fields[i].Type.Kind() != InterfaceKind
 			//fmt.Println("---omitTypes: ", omitTypes)
 			//temp := fv.ComputeMapKey(store, omitTypes)
@@ -1692,7 +1664,6 @@ func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
 	}
 	fmt.Println("---return mapkey: ", MapKey(printableOrRaw(bz)))
 	return (MapKey(printableOrRaw(bz)))
-	//return MapKey(bz)
 }
 
 // ----------------------------------------
@@ -2047,7 +2018,7 @@ func (tv *TypedValue) GetPointerAtIndexInt(store Store, ii int) PointerValue {
 }
 
 func (tv *TypedValue) GetPointerAtIndex(alloc *Allocator, store Store, iv *TypedValue) PointerValue {
-	fmt.Println("---GetPointerAtIndex, iv: ", iv, reflect.TypeOf(iv.V))
+	//fmt.Println("---GetPointerAtIndex, iv: ", iv, reflect.TypeOf(iv.V))
 	//if p, ok := iv.V.(PointerValue); ok {
 	//	fmt.Println("base: ", p.GetBase(store))
 	//}
@@ -2069,7 +2040,7 @@ func (tv *TypedValue) GetPointerAtIndex(alloc *Allocator, store Store, iv *Typed
 			"primitive type %s cannot be indexed",
 			tv.T.String()))
 	case *ArrayType:
-		println("---ArrayType")
+		//println("---ArrayType")
 		av := tv.V.(*ArrayValue)
 		ii := iv.ConvertGetInt()
 		return av.GetPointerAtIndexInt2(store, ii, bt.Elt)
@@ -2489,6 +2460,7 @@ func (b *Block) GetParent(store Store) *Block {
 }
 
 func (b *Block) GetPointerToInt(store Store, index int) PointerValue {
+	//fmt.Println("---GetPointerToInt, index: ", index)
 	vv := fillValueTV(store, &b.Values[index])
 	return PointerValue{
 		TV:    vv,
@@ -2743,8 +2715,10 @@ func typedString(s string) TypedValue {
 }
 
 func fillValueTV(store Store, tv *TypedValue) *TypedValue {
+	//fmt.Println("---fillValueWith, tv: ", tv)
 	switch cv := tv.V.(type) {
 	case RefValue:
+		//println("---refValue")
 		if cv.PkgPath != "" { // load package
 			tv.V = store.GetPackage(cv.PkgPath, false)
 		} else { // load object
@@ -2752,6 +2726,7 @@ func fillValueTV(store Store, tv *TypedValue) *TypedValue {
 			tv.V = store.GetObject(cv.ObjectID)
 		}
 	case PointerValue:
+		//println("---pointer value")
 		// As a special case, cv.Base is filled
 		// and cv.TV set appropriately.
 		// Alternatively, could implement

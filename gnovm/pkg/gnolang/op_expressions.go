@@ -9,7 +9,7 @@ import (
 
 // NOTE: keep in sync with doOpIndex2.
 func (m *Machine) doOpIndex1() {
-	fmt.Println("---doOpIndex1---")
+	//fmt.Println("---doOpIndex1---")
 	if debug {
 		_ = m.PopExpr().(*IndexExpr)
 	} else {
@@ -17,8 +17,8 @@ func (m *Machine) doOpIndex1() {
 	}
 	iv := m.PopValue()   // index
 	xv := m.PeekValue(1) // x
-	fmt.Println("---iv: ", iv)
-	fmt.Println("---xv: ", xv)
+	//fmt.Println("---iv: ", iv)
+	//fmt.Println("---xv: ", xv)
 	switch ct := baseOf(xv.T).(type) {
 	case *MapType:
 		mv := xv.V.(*MapValue)
