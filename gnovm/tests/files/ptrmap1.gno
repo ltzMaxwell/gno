@@ -2,8 +2,8 @@
 package ptr_map
 
 var (
-	m = map[int]int{}
-	i = 0
+	m = map[*int]int{}
+	i = new(int)
 )
 
 func AddToMap(value int) {
@@ -15,13 +15,17 @@ func GetFromMap() int {
 }
 
 func init() {
+	*i = 1
 	AddToMap(5)
 }
 
 func main() {
 	r := GetFromMap()
 	println(r == 5)
+	var j = 0
+	println(m[&j])
 }
 
 // Output:
 // true
+// 0

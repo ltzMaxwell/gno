@@ -790,11 +790,9 @@ func (mv *MapValue) GetPointerForKey(rlm *Realm, alloc *Allocator, store Store, 
 	mv.vmap[kmk] = mli
 
 	// XXX, make key object owned by map object
-	fmt.Println("---rlm: ", rlm)
-	oo2 := key.GetFirstObject(store)
-	fmt.Println("---oo2: ", oo2)
-	rlm.DidUpdate(mv, nil, oo2)
-
+	//oo2 := key.GetFirstObject(store)
+	//rlm.DidUpdate(mv, nil, oo2)
+	//
 	key2 := key.Copy(alloc)
 	// fmt.Println("---key2: ", key2)
 	return PointerValue{

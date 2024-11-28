@@ -2137,6 +2137,12 @@ func (m *Machine) PopAsPointer(lx Expr) PointerValue {
 				fmt.Println("---exist, v: ", v)
 			} else {
 				println("---key not exist")
+				// XXX, make key object owned by map object
+				oo2 := iv.GetFirstObject(m.Store)
+				fmt.Println("---oo2: ", oo2)
+				if oo2 != nil {
+					m.Realm.DidUpdate(mv, nil, oo2)
+				}
 			}
 		}
 
