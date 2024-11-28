@@ -1078,11 +1078,17 @@ func copyValueWithRefs(val Value) Value {
 			panic("should not happen")
 		}
 		return PointerValue{
+			/*
+				already represented in .Base[Index]:
+				TypedValue: &TypedValue{
+					T: cv.TypedValue.T,
+					V: copyValueWithRefs(cv.TypedValue.V),
+				},
+			*/
 			Base:  toRefValue(cv.Base),
 			Index: cv.Index,
 		}
 	case *ArrayValue:
-		//println("---ArrayValue")
 		if cv.Data == nil {
 			list := make([]TypedValue, len(cv.List))
 			for i, etv := range cv.List {
@@ -1516,11 +1522,11 @@ func refOrCopyValue(tv TypedValue) TypedValue {
 		tv.T = refOrCopyType(tv.T)
 	}
 	if obj, ok := tv.V.(Object); ok {
-		//println("---object")
+		// println("---object")
 		tv.V = toRefValue(obj)
 		return tv
 	} else {
-		//println("---NOT object")
+		// println("---NOT object")
 		tv.V = copyValueWithRefs(tv.V)
 		return tv
 	}

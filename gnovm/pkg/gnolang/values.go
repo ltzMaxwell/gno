@@ -211,7 +211,6 @@ func (pv *PointerValue) GetBase(store Store) Object {
 // TODO: document as something that enables into-native assignment.
 // TODO: maybe consider this as entrypoint for DataByteValue too?
 func (pv PointerValue) Assign2(alloc *Allocator, store Store, rlm *Realm, tv2 TypedValue, cu bool) {
-	//fmt.Println("---Assign2, tv: ", tv2)
 	// Special cases.
 	if pv.Index == PointerIndexNative {
 		// Special case if extended object && native.
@@ -782,7 +781,6 @@ func (mv *MapValue) GetPointerForKey(alloc *Allocator, store Store, key *TypedVa
 	}
 	mli := mv.List.Append(alloc, *key)
 	mv.vmap[kmk] = mli
-
 	key2 := key.Copy(alloc)
 	return PointerValue{
 		TV:    fillValueTV(store, &mli.Value),
@@ -1540,7 +1538,7 @@ func (tv *TypedValue) AssertNonNegative(msg string) {
 }
 
 func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
-	// map key might pointer to refValue attached ahead
+	// map key might be refValue was previously attached
 	if _, ok := tv.V.(RefValue); ok {
 		fillValueTV(store, tv)
 	}
@@ -1556,7 +1554,6 @@ func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
 	// General case.
 	bz := make([]byte, 0, 64)
 	if !omitType {
-		//println("---append types")
 		bz = append(bz, tv.T.TypeID().Bytes()...)
 		bz = append(bz, ':') // type/value separator
 	}
@@ -1594,12 +1591,7 @@ func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
 		bz = append(bz, '{')
 		for i := 0; i < sl; i++ {
 			fv := fillValueTV(store, &sv.Fields[i])
-			//fmt.Println("---fv: ", fv, reflect.TypeOf(fv))
 			omitTypes := bt.Fields[i].Type.Kind() != InterfaceKind
-			//fmt.Println("---omitTypes: ", omitTypes)
-			//temp := fv.ComputeMapKey(store, omitTypes)
-			//fmt.Println("---temp: ", temp)
-			//bz = append(bz, temp...)
 			bz = append(bz, fv.ComputeMapKey(store, omitTypes)...)
 			if i != sl-1 {
 				bz = append(bz, ',')
