@@ -251,7 +251,7 @@ func (pv PointerValue) Assign2(alloc *Allocator, store Store, rlm *Realm, tv2 Ty
 								panic("should not happen")
 							}
 							if nv, ok := tv2.V.(*NativeValue); !ok ||
-								nv.Value.Kind() != reflect.Func {
+									nv.Value.Kind() != reflect.Func {
 								panic("should not happen")
 							}
 						}
@@ -1538,7 +1538,7 @@ func (tv *TypedValue) AssertNonNegative(msg string) {
 }
 
 func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
-	// map key might be refValue was previously attached
+	// map key might be refValue that was previously attached
 	if _, ok := tv.V.(RefValue); ok {
 		fillValueTV(store, tv)
 	}
