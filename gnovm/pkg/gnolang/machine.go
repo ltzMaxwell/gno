@@ -505,21 +505,19 @@ func (m *Machine) Stacktrace() (stacktrace Stacktrace) {
 	}
 
 	calls := make([]StacktraceCall, 0, len(m.Stmts))
-	if len(m.Stmts) > 1 {
-		nextStmtIndex := len(m.Stmts) - 1
-		for i := len(m.Frames) - 1; i >= 0; i-- {
-			if m.Frames[i].IsCall() {
-				stm := m.Stmts[nextStmtIndex]
-				bs := stm.(*bodyStmt)
-				stm = bs.Body[bs.NextBodyIndex-1]
-				calls = append(calls, StacktraceCall{
-					Stmt:  stm,
-					Frame: m.Frames[i],
-				})
-			}
-			// if the frame is a call, the next statement is the last statement of the frame.
-			nextStmtIndex = m.Frames[i].NumStmts - 1
+	nextStmtIndex := len(m.Stmts) - 1
+	for i := len(m.Frames) - 1; i >= 0; i-- {
+		if m.Frames[i].IsCall() {
+			stm := m.Stmts[nextStmtIndex]
+			bs := stm.(*bodyStmt)
+			stm = bs.Body[bs.NextBodyIndex-1]
+			calls = append(calls, StacktraceCall{
+				Stmt:  stm,
+				Frame: m.Frames[i],
+			})
 		}
+		// if the frame is a call, the next statement is the last statement of the frame.
+		nextStmtIndex = m.Frames[i].NumStmts - 1
 	}
 
 	// if the stacktrace is too long, we trim it down to maxStacktraceSize
@@ -2111,7 +2109,6 @@ func (m *Machine) PushForPointer(lx Expr) {
 }
 
 func (m *Machine) PopAsPointer(lx Expr) PointerValue {
-	fmt.Println("---PopAsPointer, lx: ", lx)
 	switch lx := lx.(type) {
 	case *NameExpr:
 		switch lx.Type {
@@ -2130,27 +2127,16 @@ func (m *Machine) PopAsPointer(lx Expr) PointerValue {
 		iv := m.PopValue()
 		xv := m.PopValue()
 		if mv, ok := xv.V.(*MapValue); ok {
-			fmt.Println("---is, map value, mv: ", mv)
 			kmk := iv.ComputeMapKey(m.Store, false)
-			fmt.Println("---kmk: ", kmk)
-			if v, exist := mv.vmap[kmk]; exist {
-				fmt.Println("---exist, v: ", v)
-			} else {
-				println("---key not exist")
+			if _, exist := mv.vmap[kmk]; !exist {
 				// XXX, make key object owned by map object
 				oo2 := iv.GetFirstObject(m.Store)
-				fmt.Println("---oo2: ", oo2)
 				if oo2 != nil {
 					m.Realm.DidUpdate(mv, nil, oo2)
 				}
 			}
 		}
-
-		fmt.Printf("---index expr iv: %v, xv: %v\n", iv, xv)
-		v := xv.GetPointerAtIndex(m.Realm, m.Alloc, m.Store, iv)
-		fmt.Println("----pv returned: ", v)
-		return v
-		//return xv.GetPointerAtIndex(m.Alloc, m.Store, iv)
+		return xv.GetPointerAtIndex(m.Alloc, m.Store, iv)
 	case *SelectorExpr:
 		xv := m.PopValue()
 		return xv.GetPointerToFromTV(m.Alloc, m.Store, lx.Path)

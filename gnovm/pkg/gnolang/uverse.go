@@ -681,7 +681,7 @@ func makeUverseNode() {
 					// TODO: consider an optimization if dstv.Data != nil.
 					for i := 0; i < minl; i++ {
 						dstev := dstv.GetPointerAtIndexInt2(m.Store, i, bdt.Elt)
-						srcev := src.TV.GetPointerAtIndexInt(nil, m.Store, i)
+						srcev := src.TV.GetPointerAtIndexInt(m.Store, i)
 						dstev.Assign2(m.Alloc, m.Store, m.Realm, srcev.Deref(), false)
 					}
 					res0 := TypedValue{
@@ -808,7 +808,7 @@ func makeUverseNode() {
 			case *SliceType:
 				et := bt.Elem()
 				if vargsl == 1 {
-					lv := vargs.TV.GetPointerAtIndexInt(nil, m.Store, 0).Deref()
+					lv := vargs.TV.GetPointerAtIndexInt(m.Store, 0).Deref()
 					li := lv.ConvertGetInt()
 					if et.Kind() == Uint8Kind {
 						arrayValue := m.Alloc.NewDataArray(li)
@@ -834,9 +834,9 @@ func makeUverseNode() {
 						return
 					}
 				} else if vargsl == 2 {
-					lv := vargs.TV.GetPointerAtIndexInt(nil, m.Store, 0).Deref()
+					lv := vargs.TV.GetPointerAtIndexInt(m.Store, 0).Deref()
 					li := lv.ConvertGetInt()
-					cv := vargs.TV.GetPointerAtIndexInt(nil, m.Store, 1).Deref()
+					cv := vargs.TV.GetPointerAtIndexInt(m.Store, 1).Deref()
 					ci := cv.ConvertGetInt()
 					if et.Kind() == Uint8Kind {
 						arrayValue := m.Alloc.NewDataArray(ci)
@@ -885,7 +885,7 @@ func makeUverseNode() {
 					})
 					return
 				} else if vargsl == 1 {
-					lv := vargs.TV.GetPointerAtIndexInt(nil, m.Store, 0).Deref()
+					lv := vargs.TV.GetPointerAtIndexInt(m.Store, 0).Deref()
 					li := lv.ConvertGetInt()
 					m.PushValue(TypedValue{
 						T: tt,
@@ -915,7 +915,7 @@ func makeUverseNode() {
 						})
 						return
 					} else if vargsl == 1 {
-						sv := vargs.TV.GetPointerAtIndexInt(nil, m.Store, 0).Deref()
+						sv := vargs.TV.GetPointerAtIndexInt(m.Store, 0).Deref()
 						si := sv.ConvertGetInt()
 						m.PushValue(TypedValue{
 							T: tt,
@@ -979,7 +979,7 @@ func makeUverseNode() {
 			xvl := xv.TV.GetLength()
 			ss := make([]string, xvl)
 			for i := 0; i < xvl; i++ {
-				ev := xv.TV.GetPointerAtIndexInt(nil, m.Store, i).Deref()
+				ev := xv.TV.GetPointerAtIndexInt(m.Store, i).Deref()
 				ss[i] = ev.Sprint(m)
 			}
 			rs := strings.Join(ss, " ")
@@ -1000,7 +1000,7 @@ func makeUverseNode() {
 			xvl := xv.TV.GetLength()
 			ss := make([]string, xvl)
 			for i := 0; i < xvl; i++ {
-				ev := xv.TV.GetPointerAtIndexInt(nil, m.Store, i).Deref()
+				ev := xv.TV.GetPointerAtIndexInt(m.Store, i).Deref()
 				ss[i] = ev.Sprint(m)
 			}
 			rs := strings.Join(ss, " ") + "\n"

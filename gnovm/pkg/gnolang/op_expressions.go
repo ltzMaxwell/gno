@@ -9,7 +9,6 @@ import (
 
 // NOTE: keep in sync with doOpIndex2.
 func (m *Machine) doOpIndex1() {
-	fmt.Println("---doOpIndex1---")
 	if debug {
 		_ = m.PopExpr().(*IndexExpr)
 	} else {
@@ -17,12 +16,9 @@ func (m *Machine) doOpIndex1() {
 	}
 	iv := m.PopValue()   // index
 	xv := m.PeekValue(1) // x
-	//fmt.Println("---iv: ", iv)
-	//fmt.Println("---xv: ", xv)
 	switch ct := baseOf(xv.T).(type) {
 	case *MapType:
 		mv := xv.V.(*MapValue)
-		fmt.Println("---MapValue, mv: ", mv)
 		vv, exists := mv.GetValueForKey(m.Store, iv)
 		if exists {
 			*xv = vv // reuse as result
@@ -34,14 +30,13 @@ func (m *Machine) doOpIndex1() {
 			}
 		}
 	default:
-		res := xv.GetPointerAtIndex(m.Realm, m.Alloc, m.Store, iv)
+		res := xv.GetPointerAtIndex(m.Alloc, m.Store, iv)
 		*xv = res.Deref() // reuse as result
 	}
 }
 
 // NOTE: keep in sync with doOpIndex1.
 func (m *Machine) doOpIndex2() {
-	fmt.Println("---doOpIndex2---")
 	if debug {
 		_ = m.PopExpr().(*IndexExpr)
 	} else {
@@ -49,7 +44,6 @@ func (m *Machine) doOpIndex2() {
 	}
 	iv := m.PeekValue(1) // index
 	xv := m.PeekValue(2) // x
-	fmt.Println("---iv: ", iv)
 	switch ct := baseOf(xv.T).(type) {
 	case *MapType:
 		vt := ct.Value
@@ -652,7 +646,7 @@ func (m *Machine) doOpMapLit() {
 		for i := 0; i < ne; i++ {
 			ktv := &kvs[i*2]
 			vtv := kvs[i*2+1]
-			ptr := mv.GetPointerForKey(m.Realm, m.Alloc, m.Store, ktv)
+			ptr := mv.GetPointerForKey(m.Alloc, m.Store, ktv)
 			if ptr.TV.IsDefined() {
 				// map key has already been assigned
 				panic(fmt.Sprintf("duplicate key %s in map literal", ktv.V))

@@ -637,7 +637,7 @@ func go2GnoValueUpdate(alloc *Allocator, rlm *Realm, lvl int, tv *TypedValue, rv
 			k, v := rv2i.Key(), rv2i.Value()
 			ktv := go2GnoValue(alloc, k)
 			vtv := go2GnoValue(alloc, v)
-			ptr := mv.GetPointerForKey(nil, alloc, nil, &ktv)
+			ptr := mv.GetPointerForKey(alloc, nil, &ktv)
 			if debug {
 				if !ptr.TV.IsUndefined() {
 					panic("should not happen")
