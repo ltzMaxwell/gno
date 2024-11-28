@@ -134,12 +134,12 @@ func (rlm *Realm) String() string {
 // xo or co is nil if the element value is undefined or has no
 // associated object.
 func (rlm *Realm) DidUpdate(po, xo, co Object) {
-	//fmt.Println("---DidUpdate, po: ", po)
-	//fmt.Println("---xo: ", xo)
-	//fmt.Println("---co: ", co)
-	//if co != nil {
-	//	fmt.Println("---co.GetIsReal(): ", co.GetIsReal())
-	//}
+	fmt.Println("---DidUpdate, po: ", po)
+	fmt.Println("---xo: ", xo)
+	fmt.Println("---co: ", co)
+	if co != nil {
+		fmt.Println("---co.GetIsReal(): ", co.GetIsReal())
+	}
 	if rlm == nil {
 		return
 	}
@@ -366,10 +366,10 @@ func (rlm *Realm) FinalizeRealmTransaction(readonly bool, store Store) {
 // All newly created objects become appended to .created,
 // and get assigned ids.
 func (rlm *Realm) processNewCreatedMarks(store Store) {
-	//fmt.Println("---ProcessNewCreatedMarks---")
+	fmt.Println("---ProcessNewCreatedMarks---")
 	// Create new objects and their new descendants.
 	for _, oo := range rlm.newCreated {
-		//fmt.Println("---oo: ", oo)
+		fmt.Println("---oo: ", oo)
 		if debug {
 			if oo.GetIsDirty() {
 				panic("new created mark cannot be dirty")
@@ -397,7 +397,7 @@ func (rlm *Realm) processNewCreatedMarks(store Store) {
 
 // oo must be marked new-real, and ref-count already incremented.
 func (rlm *Realm) incRefCreatedDescendants(store Store, oo Object) {
-	//fmt.Println("---IncRefCreatedDescendants, oo: ", oo)
+	fmt.Println("---IncRefCreatedDescendants, oo: ", oo)
 	if debug {
 		if oo.GetIsDirty() {
 			panic("cannot increase reference of descendants of dirty objects")

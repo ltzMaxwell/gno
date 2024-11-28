@@ -16,10 +16,11 @@ func main() {
 	// Create an array of pointers to MyStruct
 	key1 := [1]*MyStruct{i1}
 	m[key1] = "first key"
-	println(m[key1] == "")
+	println(m[key1])
+	m[key1] = "second key"
 	println(m[key1])
 }
 
 // Output:
-// false
 // first key
+// second key
