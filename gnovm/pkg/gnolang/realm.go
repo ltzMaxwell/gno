@@ -1175,34 +1175,36 @@ func copyValueWithRefs(val Value) Value {
 			//fmt.Println("---cur.Key: ", cur.Key)
 			// XXX, consider this
 
-			var key2 TypedValue
-			if p, ok := cur.Key.V.(PointerValue); ok {
-				//fmt.Println("---pointer value", p)
-				pv := PointerValue{
-					Base:  toRefValue(p.Base),
-					Index: p.Index,
-				}
+			//var key2 TypedValue
+			//if p, ok := cur.Key.V.(PointerValue); ok {
+			//	//fmt.Println("---pointer value", p)
+			//	pv := PointerValue{
+			//		Base:  toRefValue(p.Base),
+			//		Index: p.Index,
+			//	}
+			//
+			//	if hiv, ok := p.Base.(*HeapItemValue); ok {
+			//		pv.TV = &hiv.Value
+			//	} else if b, ok := p.Base.(*Block); ok {
+			//		pv.TV = &b.Values[p.Index]
+			//	}
+			//
+			//	key2.V = pv
+			//	key2.T = &PointerType{Elt: cur.Key.T}
+			//} else {
+			//	if ko, ok := cur.Key.V.(Object); ok && ko.GetIsReal() {
+			//		//fmt.Println("---ko: ", ko)
+			//		//fmt.Println("---ko.GetIsReal(): ", ko.GetIsReal())
+			//		//println("---key is real")
+			//		key2 = refOrCopyValue(cur.Key)
+			//	} else {
+			//		key2 = cur.Key
+			//	}
+			//}
 
-				if hiv, ok := p.Base.(*HeapItemValue); ok {
-					pv.TV = &hiv.Value
-				} else if b, ok := p.Base.(*Block); ok {
-					pv.TV = &b.Values[p.Index]
-				}
-
-				key2.V = pv
-				key2.T = &PointerType{Elt: cur.Key.T}
-			} else {
-				if ko, ok := cur.Key.V.(Object); ok && ko.GetIsReal() {
-					//fmt.Println("---ko: ", ko)
-					//fmt.Println("---ko.GetIsReal(): ", ko.GetIsReal())
-					//println("---key is real")
-					key2 = refOrCopyValue(cur.Key)
-				} else {
-					key2 = cur.Key
-				}
-			}
-
-			//fmt.Println("---2, key2: ", key2)
+			key2 := refOrCopyValue(cur.Key)
+			fmt.Println("---2, key2: ", key2)
+			fmt.Println("---type of key2.V: ", reflect.TypeOf(key2.V))
 			val2 := refOrCopyValue(cur.Value)
 			list.Append(nilAllocator, key2).Value = val2
 		}
@@ -1279,6 +1281,7 @@ func copyValueWithRefs(val Value) Value {
 
 // (fully) fills the type.
 func fillType(store Store, typ Type) Type {
+	fmt.Println("---fillType: ", typ)
 	switch ct := typ.(type) {
 	case nil:
 		return nil
@@ -1362,6 +1365,7 @@ func fillType(store Store, typ Type) Type {
 }
 
 func fillTypesTV(store Store, tv *TypedValue) {
+	fmt.Println("---fillTypesTV: ", tv)
 	tv.T = fillType(store, tv.T)
 	tv.V = fillTypesOfValue(store, tv.V)
 }
@@ -1369,7 +1373,7 @@ func fillTypesTV(store Store, tv *TypedValue) {
 // Partially fills loaded objects shallowly, similarly to
 // getUnsavedTypes. Replaces all RefTypes with corresponding types.
 func fillTypesOfValue(store Store, val Value) Value {
-	//fmt.Println("---fillTypesOfValue, val: ", val)
+	fmt.Println("---fillTypesOfValue, val: ", val)
 	switch cv := val.(type) {
 	case nil: // do nothing
 		return cv
@@ -1413,9 +1417,10 @@ func fillTypesOfValue(store Store, val Value) Value {
 		fillTypesTV(store, &cv.Receiver)
 		return cv
 	case *MapValue:
-		println("---map value")
+		fmt.Println("---MapValue, val: ", cv)
 		cv.vmap = make(map[MapKey]*MapListItem, cv.List.Size)
 		for cur := cv.List.Head; cur != nil; cur = cur.Next {
+			fmt.Println("---cur: ", cur)
 			fillTypesTV(store, &cur.Key)
 			fillTypesTV(store, &cur.Value)
 

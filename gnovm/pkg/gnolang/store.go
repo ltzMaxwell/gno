@@ -361,6 +361,7 @@ func (ds *defaultStore) GetObjectSafe(oid ObjectID) Object {
 // loads and caches an object.
 // CONTRACT: object isn't already in the cache.
 func (ds *defaultStore) loadObjectSafe(oid ObjectID) Object {
+	fmt.Println("---loadObjectSafe, oid: ", oid)
 	key := backendObjectKey(oid)
 	hashbz := ds.baseStore.Get([]byte(key))
 	if hashbz != nil {
@@ -377,6 +378,7 @@ func (ds *defaultStore) loadObjectSafe(oid ObjectID) Object {
 		}
 		oo.SetHash(ValueHash{NewHashlet(hash)})
 		ds.cacheObjects[oid] = oo
+		fmt.Println("---oo: ", oo)
 		_ = fillTypesOfValue(ds, oo)
 		return oo
 	}

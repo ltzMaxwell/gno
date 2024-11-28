@@ -446,7 +446,7 @@ func (m *Machine) TestMemPackage(t *testing.T, memPkg *gnovm.MemPackage) {
 // starts with `Test`.
 func (m *Machine) TestFunc(t *testing.T, tv TypedValue) {
 	if !(tv.T.Kind() == FuncKind &&
-			strings.HasPrefix(string(tv.V.(*FuncValue).Name), "Test")) {
+		strings.HasPrefix(string(tv.V.(*FuncValue).Name), "Test")) {
 		return // not a test function.
 	}
 	// XXX ensure correct func type.
@@ -2111,6 +2111,7 @@ func (m *Machine) PushForPointer(lx Expr) {
 }
 
 func (m *Machine) PopAsPointer(lx Expr) PointerValue {
+	fmt.Println("---PopAsPointer, lx: ", lx)
 	switch lx := lx.(type) {
 	case *NameExpr:
 		switch lx.Type {
@@ -2128,7 +2129,22 @@ func (m *Machine) PopAsPointer(lx Expr) PointerValue {
 	case *IndexExpr:
 		iv := m.PopValue()
 		xv := m.PopValue()
-		return xv.GetPointerAtIndex(m.Alloc, m.Store, iv)
+		if mv, ok := xv.V.(*MapValue); ok {
+			fmt.Println("---is, map value, mv: ", mv)
+			kmk := iv.ComputeMapKey(m.Store, false)
+			fmt.Println("---kmk: ", kmk)
+			if v, exist := mv.vmap[kmk]; exist {
+				fmt.Println("---exist, v: ", v)
+			} else {
+				println("---key not exist")
+			}
+		}
+
+		fmt.Printf("---index expr iv: %v, xv: %v\n", iv, xv)
+		v := xv.GetPointerAtIndex(m.Realm, m.Alloc, m.Store, iv)
+		fmt.Println("----pv returned: ", v)
+		return v
+		//return xv.GetPointerAtIndex(m.Alloc, m.Store, iv)
 	case *SelectorExpr:
 		xv := m.PopValue()
 		return xv.GetPointerToFromTV(m.Alloc, m.Store, lx.Path)

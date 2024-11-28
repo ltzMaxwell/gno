@@ -254,7 +254,7 @@ func (pv PointerValue) Assign2(alloc *Allocator, store Store, rlm *Realm, tv2 Ty
 								panic("should not happen")
 							}
 							if nv, ok := tv2.V.(*NativeValue); !ok ||
-									nv.Value.Kind() != reflect.Func {
+								nv.Value.Kind() != reflect.Func {
 								panic("should not happen")
 							}
 						}
@@ -771,11 +771,12 @@ func (mv *MapValue) GetLength() int {
 // Gno will, but here we just use this method signature as we
 // do for structs and arrays for assigning new entries.  If key
 // doesn't exist, a new slot is created.
-func (mv *MapValue) GetPointerForKey(alloc *Allocator, store Store, key *TypedValue) PointerValue {
-	//fmt.Println("---GetPointerForKey, key: ", key)
+func (mv *MapValue) GetPointerForKey(rlm *Realm, alloc *Allocator, store Store, key *TypedValue) PointerValue {
+	fmt.Println("---GetPointerForKey, key: ", key)
 	kmk := key.ComputeMapKey(store, false)
-	//fmt.Println("---kmk1: ", kmk)
+	fmt.Println("---kmk1: ", kmk)
 	if mli, ok := mv.vmap[kmk]; ok {
+		fmt.Println("---kmk1 exist")
 		key2 := key.Copy(alloc)
 		return PointerValue{
 			TV:    fillValueTV(store, &mli.Value),
@@ -784,8 +785,15 @@ func (mv *MapValue) GetPointerForKey(alloc *Allocator, store Store, key *TypedVa
 			Index: PointerIndexMap,
 		}
 	}
+	println("---kmk1 NOT exist")
 	mli := mv.List.Append(alloc, *key)
 	mv.vmap[kmk] = mli
+
+	// XXX, make key object owned by map object
+	fmt.Println("---rlm: ", rlm)
+	oo2 := key.GetFirstObject(store)
+	fmt.Println("---oo2: ", oo2)
+	rlm.DidUpdate(mv, nil, oo2)
 
 	key2 := key.Copy(alloc)
 	// fmt.Println("---key2: ", key2)
@@ -800,9 +808,9 @@ func (mv *MapValue) GetPointerForKey(alloc *Allocator, store Store, key *TypedVa
 // Like GetPointerForKey, but does not create a slot if key
 // doesn't exist.
 func (mv *MapValue) GetValueForKey(store Store, key *TypedValue) (val TypedValue, ok bool) {
-	//fmt.Println("---GetValueForKey, key: ", key)
+	fmt.Println("---GetValueForKey, key: ", key)
 	kmk := key.ComputeMapKey(store, false)
-	//fmt.Println("---kmk2: ", kmk)
+	fmt.Println("---kmk2: ", kmk)
 	if mli, exists := mv.vmap[kmk]; exists {
 		fillValueTV(store, &mli.Value)
 		val, ok = mli.Value, true
@@ -1568,7 +1576,7 @@ func printableOrRaw(byteSlice []byte) string {
 }
 
 func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
-	//fmt.Println("---ComputeMapKey, tv: type of tv.V: ", tv, reflect.TypeOf(tv.V))
+	fmt.Println("---ComputeMapKey, tv: type of tv.V: ", tv, reflect.TypeOf(tv.V))
 	// map key might pointer to refValue attached ahead
 	if _, ok := tv.V.(RefValue); ok {
 		fillValueTV(store, tv)
@@ -1598,12 +1606,15 @@ func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
 		//fmt.Println("---mapkey: ", MapKey(bz))
 	case *PointerType:
 		fmt.Println("---pointer value, tv.V: ", tv.V)
-		fmt.Println("---Ptr.TV: ", tv.V.(PointerValue).TV)
-		if tv.V.(PointerValue).TV != nil {
-			return tv.V.(PointerValue).TV.ComputeMapKey(store, omitType)
-		} else {
-			panic("should not happen")
-		}
+		//fmt.Println("---Ptr.TV: ", tv.V.(PointerValue).TV)
+		//fmt.Printf("---addr of tv.V: %p \n", tv.V.(PointerValue).TV)
+		//
+		//ptr := uintptr(unsafe.Pointer(tv.V.(PointerValue).TV))
+		//bz = append(bz, uintptrToBytes(&ptr)...)
+		//fmt.Println("---Mapkey(bz): ", MapKey(bz))
+
+		fillValueTV(store, tv)
+		return tv.V.(PointerValue).TV.ComputeMapKey(store, omitType)
 	case FieldType:
 		panic("field (pseudo)type cannot be used as map key")
 	case *ArrayType:
@@ -1664,6 +1675,7 @@ func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
 	}
 	fmt.Println("---return mapkey: ", MapKey(printableOrRaw(bz)))
 	return (MapKey(printableOrRaw(bz)))
+	//return MapKey(bz)
 }
 
 // ----------------------------------------
@@ -2011,14 +2023,15 @@ func (tv *TypedValue) GetPointerToFromTV(alloc *Allocator, store Store, path Val
 }
 
 // Convenience for GetPointerAtIndex().  Slow.
-func (tv *TypedValue) GetPointerAtIndexInt(store Store, ii int) PointerValue {
+func (tv *TypedValue) GetPointerAtIndexInt(rlm *Realm, store Store, ii int) PointerValue {
 	iv := TypedValue{T: IntType}
 	iv.SetInt(ii)
-	return tv.GetPointerAtIndex(nilAllocator, store, &iv)
+	return tv.GetPointerAtIndex(rlm, nilAllocator, store, &iv)
 }
 
-func (tv *TypedValue) GetPointerAtIndex(alloc *Allocator, store Store, iv *TypedValue) PointerValue {
-	//fmt.Println("---GetPointerAtIndex, iv: ", iv, reflect.TypeOf(iv.V))
+func (tv *TypedValue) GetPointerAtIndex(rlm *Realm, alloc *Allocator, store Store, iv *TypedValue) PointerValue {
+	fmt.Println("---GetPointerAtIndex, iv: ", iv, reflect.TypeOf(iv.V))
+	fmt.Println("---type of tv.T: ", reflect.TypeOf(tv.T))
 	//if p, ok := iv.V.(PointerValue); ok {
 	//	fmt.Println("base: ", p.GetBase(store))
 	//}
@@ -2056,8 +2069,10 @@ func (tv *TypedValue) GetPointerAtIndex(alloc *Allocator, store Store, iv *Typed
 			panic("uninitialized map index")
 		}
 		mv := tv.V.(*MapValue)
-		pv := mv.GetPointerForKey(alloc, store, iv)
+		pv := mv.GetPointerForKey(rlm, alloc, store, iv)
+		fmt.Println("---map type, pv: ", pv)
 		if pv.TV.IsUndefined() {
+			println("---pv.TV undefined, default value")
 			vt := baseOf(tv.T).(*MapType).Value
 			if vt.Kind() != InterfaceKind {
 				// this will get assigned over, so no alloc.
@@ -2460,7 +2475,7 @@ func (b *Block) GetParent(store Store) *Block {
 }
 
 func (b *Block) GetPointerToInt(store Store, index int) PointerValue {
-	//fmt.Println("---GetPointerToInt, index: ", index)
+	fmt.Println("---GetPointerToInt, index: ", index)
 	vv := fillValueTV(store, &b.Values[index])
 	return PointerValue{
 		TV:    vv,
@@ -2470,6 +2485,7 @@ func (b *Block) GetPointerToInt(store Store, index int) PointerValue {
 }
 
 func (b *Block) GetPointerTo(store Store, path ValuePath) PointerValue {
+	fmt.Println("---GetPointerTo, path: ", path)
 	if path.IsBlockBlankPath() {
 		if debug {
 			if path.Name != blankIdentifier {
@@ -2496,6 +2512,7 @@ func (b *Block) GetPointerTo(store Store, path ValuePath) PointerValue {
 
 // Convenience
 func (b *Block) GetPointerToMaybeHeapUse(store Store, nx *NameExpr) PointerValue {
+	fmt.Println("---GetPointerToMaybeHeapUse, nx: ", nx)
 	switch nx.Type {
 	case NameExprTypeNormal:
 		return b.GetPointerTo(store, nx.Path)
@@ -2715,18 +2732,19 @@ func typedString(s string) TypedValue {
 }
 
 func fillValueTV(store Store, tv *TypedValue) *TypedValue {
-	//fmt.Println("---fillValueWith, tv: ", tv)
+	fmt.Println("---fillValueWith, tv: ", tv)
 	switch cv := tv.V.(type) {
 	case RefValue:
-		//println("---refValue")
+		println("---refValue")
 		if cv.PkgPath != "" { // load package
 			tv.V = store.GetPackage(cv.PkgPath, false)
 		} else { // load object
 			// XXX XXX allocate object.
 			tv.V = store.GetObject(cv.ObjectID)
 		}
+		fmt.Println("---tv.V: ", tv.V)
 	case PointerValue:
-		//println("---pointer value")
+		fmt.Println("---pointer value")
 		// As a special case, cv.Base is filled
 		// and cv.TV set appropriately.
 		// Alternatively, could implement
@@ -2734,8 +2752,10 @@ func fillValueTV(store Store, tv *TypedValue) *TypedValue {
 		// but for execution speed traded off for
 		// loading speed, we do the following for now:
 		if ref, ok := cv.Base.(RefValue); ok {
+			println("---base is ref")
 			base := store.GetObject(ref.ObjectID).(Value)
 			cv.Base = base
+			fmt.Println("---type of base: ", reflect.TypeOf(base))
 			switch cb := base.(type) {
 			case *ArrayValue:
 				et := baseOf(tv.T).(*PointerType).Elt
@@ -2757,6 +2777,8 @@ func fillValueTV(store Store, tv *TypedValue) *TypedValue {
 				panic("should not happen")
 			}
 			tv.V = cv
+		} else {
+			println("---base not ref")
 		}
 	default:
 		// do nothing

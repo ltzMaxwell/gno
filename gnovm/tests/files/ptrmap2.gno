@@ -21,7 +21,6 @@ func init() {
 
 func main() {
 	r := GetFromMap()
-	println(r)
 	println(r == 5)
 	var j = 0
 	j1 := &j
@@ -29,6 +28,5 @@ func main() {
 }
 
 // Output:
-// 5
 // true
 // 0
