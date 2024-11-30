@@ -22,6 +22,7 @@ func init() {
 func main() {
 	r := GetFromMap()
 	println(r == 5)
+
 	var j = 0
 	j1 := &j
 	println(m[&j1])
