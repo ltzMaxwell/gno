@@ -22,7 +22,11 @@ func init() {
 func main() {
 	r := GetFromMap()
 	println(r == 5)
+
+	*i = 2
+	println(r == 5)
 }
 
 // Output:
+// true
 // true

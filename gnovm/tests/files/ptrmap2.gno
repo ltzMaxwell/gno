@@ -26,8 +26,12 @@ func main() {
 	var j = 0
 	j1 := &j
 	println(m[&j1])
+
+	*i = 2
+	println(r == 5)
 }
 
 // Output:
 // true
 // 0
+// true
