@@ -446,7 +446,7 @@ func (m *Machine) TestMemPackage(t *testing.T, memPkg *gnovm.MemPackage) {
 // starts with `Test`.
 func (m *Machine) TestFunc(t *testing.T, tv TypedValue) {
 	if !(tv.T.Kind() == FuncKind &&
-		strings.HasPrefix(string(tv.V.(*FuncValue).Name), "Test")) {
+			strings.HasPrefix(string(tv.V.(*FuncValue).Name), "Test")) {
 		return // not a test function.
 	}
 	// XXX ensure correct func type.
@@ -505,19 +505,22 @@ func (m *Machine) Stacktrace() (stacktrace Stacktrace) {
 	}
 
 	calls := make([]StacktraceCall, 0, len(m.Stmts))
-	nextStmtIndex := len(m.Stmts) - 1
-	for i := len(m.Frames) - 1; i >= 0; i-- {
-		if m.Frames[i].IsCall() {
-			stm := m.Stmts[nextStmtIndex]
-			bs := stm.(*bodyStmt)
-			stm = bs.Body[bs.NextBodyIndex-1]
-			calls = append(calls, StacktraceCall{
-				Stmt:  stm,
-				Frame: m.Frames[i],
-			})
+	if len(m.Stmts) > 1 {
+
+		nextStmtIndex := len(m.Stmts) - 1
+		for i := len(m.Frames) - 1; i >= 0; i-- {
+			if m.Frames[i].IsCall() {
+				stm := m.Stmts[nextStmtIndex]
+				bs := stm.(*bodyStmt)
+				stm = bs.Body[bs.NextBodyIndex-1]
+				calls = append(calls, StacktraceCall{
+					Stmt:  stm,
+					Frame: m.Frames[i],
+				})
+			}
+			// if the frame is a call, the next statement is the last statement of the frame.
+			nextStmtIndex = m.Frames[i].NumStmts - 1
 		}
-		// if the frame is a call, the next statement is the last statement of the frame.
-		nextStmtIndex = m.Frames[i].NumStmts - 1
 	}
 
 	// if the stacktrace is too long, we trim it down to maxStacktraceSize
@@ -1766,6 +1769,7 @@ func (m *Machine) PopValue() (tv *TypedValue) {
 	if debug {
 		m.Printf("-v %v\n", tv)
 	}
+	//fmt.Printf("-v %v\n", tv)
 	m.NumValues--
 	return tv
 }
@@ -2079,6 +2083,7 @@ func (m *Machine) PopUntilLastCallFrame() *Frame {
 }
 
 func (m *Machine) PushForPointer(lx Expr) {
+	fmt.Println("---PushForPointer, lx: ", lx)
 	switch lx := lx.(type) {
 	case *NameExpr:
 		// no Lhs eval needed.
@@ -2098,6 +2103,7 @@ func (m *Machine) PushForPointer(lx Expr) {
 		m.PushExpr(lx.X)
 		m.PushOp(OpEval)
 	case *CompositeLitExpr: // for *RefExpr e.g. &mystruct{}
+		println("---CompositeLitExpr")
 		// evaluate lx.
 		m.PushExpr(lx)
 		m.PushOp(OpEval)
@@ -2109,6 +2115,7 @@ func (m *Machine) PushForPointer(lx Expr) {
 }
 
 func (m *Machine) PopAsPointer(lx Expr) PointerValue {
+	fmt.Println("---PopAsPointer, lx: ", lx)
 	switch lx := lx.(type) {
 	case *NameExpr:
 		switch lx.Type {
@@ -2126,9 +2133,11 @@ func (m *Machine) PopAsPointer(lx Expr) PointerValue {
 	case *IndexExpr:
 		iv := m.PopValue()
 		xv := m.PopValue()
+		fmt.Println("---index expr, iv, path of iv: ", iv, iv.GetPath())
 		if mv, ok := xv.V.(*MapValue); ok {
 			kmk := iv.ComputeMapKey(m.Store, false)
 			if _, exist := mv.vmap[kmk]; !exist {
+				println("---Not exist")
 				// XXX, make key object owned by map object
 				oo2 := iv.GetFirstObject(m.Store)
 				if oo2 != nil {

@@ -13,7 +13,6 @@ var (
 )
 
 func main() {
-	// Create an array of pointers to MyStruct
 	m[i1] = "first key"
 	println(m[i1])
 

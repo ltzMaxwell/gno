@@ -40,9 +40,8 @@ func (m *Machine) doOpEval() {
 			ptr := lb.GetPointerToMaybeHeapUse(m.Store, nx)
 			v := ptr.Deref()
 
-			fmt.Println("---v: ", v)
+			//fmt.Println("---v: ", v)
 			v.SetPath(nx.Path)
-			fmt.Println("---v.Path: ", v.Path)
 			fmt.Println("---v.GetPath: ", v.GetPath())
 
 			//m.PushValue(ptr.Deref())

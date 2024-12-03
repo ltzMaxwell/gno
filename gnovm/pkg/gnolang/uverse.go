@@ -746,10 +746,8 @@ func makeUverseNode() {
 					return
 				}
 
-				// delete
-				mv.DeleteForKey(m.Store, &itv)
-
 				if m.Realm != nil {
+					fmt.Println("---delete")
 					// mark key as deleted
 					keyObj := itv.GetFirstObject(m.Store)
 					m.Realm.DidUpdate(mv, keyObj, nil)
@@ -758,6 +756,8 @@ func makeUverseNode() {
 					valObj := val.GetFirstObject(m.Store)
 					m.Realm.DidUpdate(mv, valObj, nil)
 				}
+				// delete
+				mv.DeleteForKey(m.Store, &itv)
 
 				return
 			case *NativeType:

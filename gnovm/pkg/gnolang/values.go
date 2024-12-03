@@ -769,8 +769,8 @@ func (mv *MapValue) GetLength() int {
 // do for structs and arrays for assigning new entries.  If key
 // doesn't exist, a new slot is created.
 func (mv *MapValue) GetPointerForKey(alloc *Allocator, store Store, key *TypedValue) PointerValue {
-	fmt.Println("---GetPointerForKey, key: ", key)
-	fmt.Println("---path: ", key.GetPath())
+	//fmt.Println("---GetPointerForKey, key: ", key)
+	//fmt.Println("---path: ", key.GetPath())
 
 	kmk := key.ComputeMapKey(store, false)
 	if mli, ok := mv.vmap[kmk]; ok {
@@ -796,7 +796,7 @@ func (mv *MapValue) GetPointerForKey(alloc *Allocator, store Store, key *TypedVa
 // Like GetPointerForKey, but does not create a slot if key
 // doesn't exist.
 func (mv *MapValue) GetValueForKey(store Store, key *TypedValue) (val TypedValue, ok bool) {
-	fmt.Println("---GetValueForkey, key: ", key)
+	//fmt.Println("---GetValueForkey, key: ", key)
 	kmk := key.ComputeMapKey(store, false)
 	if mli, exists := mv.vmap[kmk]; exists {
 		fillValueTV(store, &mli.Value)
@@ -1552,7 +1552,9 @@ func (tv *TypedValue) AssertNonNegative(msg string) {
 
 func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
 	fmt.Println("---ComputeMapKey, tv: ", tv)
-	fmt.Println("---path: ", tv.GetPath())
+	fmt.Println("---path.Type: ", tv.GetPath().Type)
+	fmt.Println("---path.Depth: ", tv.GetPath().Depth)
+	fmt.Println("---path.Index: ", tv.GetPath().Index)
 	// map key might be refValue that was previously attached
 	if _, ok := tv.V.(RefValue); ok {
 		fillValueTV(store, tv)
@@ -1579,7 +1581,12 @@ func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
 	case *PointerType:
 		//fillValueTV(store, tv)
 		//return tv.V.(PointerValue).TV.ComputeMapKey(store, omitType)
-		bz = append(bz, []byte(tv.GetPath().String())...)
+		if tv.GetPath().Type == VPUverse && tv.GetPath().Depth == 0 && tv.GetPath().Index == 0 {
+			ptr := uintptr(unsafe.Pointer(tv.V.(PointerValue).TV))
+			bz = append(bz, uintptrToBytes(&ptr)...)
+		} else {
+			bz = append(bz, []byte(tv.GetPath().String())...)
+		}
 	case FieldType:
 		panic("field (pseudo)type cannot be used as map key")
 	case *ArrayType:

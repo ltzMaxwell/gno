@@ -182,10 +182,10 @@ func (m *Machine) doOpStar() {
 // XXX this is wrong, for var i interface{}; &i is *interface{}.
 func (m *Machine) doOpRef() {
 	rx := m.PopExpr().(*RefExpr)
-	fmt.Println("---doOpRef, rx: ", rx)
+	//fmt.Println("---doOpRef, rx: ", rx)
 	m.Alloc.AllocatePointer()
 	xv := m.PopAsPointer(rx.X)
-	fmt.Println("---xv: ", xv)
+	//fmt.Println("---xv: ", xv)
 	if nv, ok := xv.TV.V.(*NativeValue); ok {
 		// If a native pointer, ensure it is addressable.  This
 		// way, PointerValue{*NativeValue{rv}} can be converted
@@ -683,6 +683,7 @@ func (m *Machine) doOpMapLit() {
 func (m *Machine) doOpStructLit() {
 	// assess performance TODO
 	x := m.PopExpr().(*CompositeLitExpr)
+	fmt.Println("---doOpStructLit, x: ", x)
 	el := len(x.Elts) // may be incomplete
 	// peek struct type.
 	xt := m.PeekValue(1 + el).V.(TypeValue).Type

@@ -213,6 +213,7 @@ func RunFileTest(rootDir string, path string, opts ...RunFileTestOption) error {
 				}
 				// run decls and init functions.
 				m.RunMemPackage(memPkg, true)
+				println("---after RunMemPackage")
 				// reconstruct machine and clear store cache.
 				// whether package is realm or not, since non-realm
 				// may call realm packages too.
@@ -222,6 +223,7 @@ func RunFileTest(rootDir string, path string, opts ...RunFileTestOption) error {
 					f.logger("========================================")
 				}
 				store.ClearCache()
+				println("---after CLEAR STORE CACHE")
 				/*
 					m = gno.NewMachineWithOptions(gno.MachineOptions{
 						PkgPath:       "",
@@ -248,6 +250,7 @@ func RunFileTest(rootDir string, path string, opts ...RunFileTestOption) error {
 				m.SetActivePackage(pv2)
 				gno.EnableDebug()
 				if rops != "" {
+					println("---before run main reset init")
 					// clear store.opslog from init function(s),
 					// and PreprocessAllFilesAndSaveBlockNodes().
 					store.SetLogStoreOps(true) // resets.
@@ -414,7 +417,8 @@ func RunFileTest(rootDir string, path string, opts ...RunFileTestOption) error {
 				if rops != "" {
 					rops2 := strings.TrimSpace(store.SprintStoreOps())
 					if rops != rops2 {
-						if f.syncWanted {
+						//if f.syncWanted {
+						if true {
 							// write output to file.
 							replaceWantedInPlace(path, "Realm", rops2)
 						} else {

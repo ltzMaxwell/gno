@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
+	"unsafe"
 
 	"github.com/gnolang/gno/tm2/pkg/crypto"
 )
@@ -104,6 +105,13 @@ func isUpper(s string) bool {
 }
 
 // ----------------------------------------
+// converting uintptr to bytes.
+
+const sizeOfUintPtr = unsafe.Sizeof(uintptr(0))
+
+func uintptrToBytes(u *uintptr) []byte {
+	return (*[sizeOfUintPtr]byte)(unsafe.Pointer(u))[:]
+}
 
 func defaultPkgName(gopkgPath string) Name {
 	parts := strings.Split(gopkgPath, "/")
