@@ -128,44 +128,51 @@ func (rlm *Realm) String() string {
 //----------------------------------------
 // ownership hooks
 
+func (rlm *Realm) DelObjectByValue(po, xo Object) {
+	var more []Value
+	//children := getChildObjects(po, more)
+	var children []Value
+	if mv, ok := po.(*MapValue); ok {
+		for cur := mv.List.Head; cur != nil; cur = cur.Next {
+			fmt.Println("---cur: ", cur)
+			children = getSelfOrChildObjects(cur.Key.V, more)
+			for i, child := range children {
+				fmt.Printf("---child[%d]: %v \n", i, child)
+				fmt.Println("---child.GetIsReal(): ", child.(Object).GetIsReal())
+				// find same value object, should be unique in map key
+				switch v := child.(Object).(type) {
+				case *StructValue:
+					if sv, ok := xo.(*StructValue); ok {
+						fmt.Println("---obj_info of v: ", v.ObjectInfo)
+						fmt.Println("---obj_info of sv: ", sv.ObjectInfo)
+						if reflect.DeepEqual(v.Fields, sv.Fields) {
+							ooo := child.(Object)
+							if ooo.GetIsReal() {
+								println("---xo is real")
+								//ooo.DecRefCount()
+								fmt.Println("---ooo refCount after dec: ", ooo.DecRefCount())
+								rlm.MarkNewDeleted(ooo)
+							}
+						}
+					}
+				case *ArrayValue:
+				case *HeapItemValue:
+				default:
+					panic("should not happen, invalid map key type")
+				}
+			}
+		}
+	} else {
+		panic("po should be MapValue")
+	}
+}
+
 // po's old elem value is xo, will become co.
 // po, xo, and co may each be nil.
 // if rlm or po is nil, do nothing.
 // xo or co is nil if the element value is undefined or has no
 // associated object.
 func (rlm *Realm) DidUpdate(po, xo, co Object) {
-	fmt.Println("---DidUpdate, po: ", po)
-	var more []Value
-	var delXoByValue bool
-	children := getChildObjects(po, more)
-	for i, child := range children {
-		fmt.Printf("---child[%d]: %v \n", i, child)
-		fmt.Println("---child.GetIsReal(): ", child.(Object).GetIsReal())
-
-		sv1, ok1 := child.(*StructValue)
-		sv2, ok2 := xo.(*StructValue)
-		if ok1 && ok2 {
-			if reflect.DeepEqual(sv1.Fields, sv2.Fields) {
-				ooo := child.(Object)
-				if ooo.GetIsReal() {
-					println("---xo is real")
-					//ooo.DecRefCount()
-					fmt.Println("---ooo refCount after dec: ", ooo.DecRefCount())
-					rlm.MarkNewDeleted(ooo)
-				}
-			}
-		}
-	}
-
-	fmt.Println("---po get is real: ", po.GetIsReal())
-	fmt.Println("---xo: ", xo)
-	if xo != nil {
-		fmt.Println("---xo.GetRefCount(): ", xo.GetRefCount())
-		fmt.Println("---xo.GetOwner(): ", xo.GetOwner())
-		fmt.Println("---xo.GetObjectID: ", xo.GetObjectID())
-	}
-	fmt.Println("---co: ", co)
-	fmt.Println("---rlm: ", rlm)
 	if rlm == nil {
 		return
 	}
@@ -223,12 +230,6 @@ func (rlm *Realm) DidUpdate(po, xo, co Object) {
 			if xo.GetIsReal() {
 				rlm.MarkNewDeleted(xo)
 			}
-		} else if delXoByValue {
-			//println("---del by value")
-			//if xo.GetIsReal() {
-			//	println("---xo is real")
-			//	rlm.MarkNewDeleted(xo)
-			//}
 		}
 	}
 }
@@ -340,13 +341,13 @@ func (rlm *Realm) FinalizeRealmTransaction(readonly bool, store Store) {
 	fmt.Println("---FinalizeRealmTransaction")
 	if readonly {
 		if true ||
-				len(rlm.newCreated) > 0 ||
-				len(rlm.newEscaped) > 0 ||
-				len(rlm.newDeleted) > 0 ||
-				len(rlm.created) > 0 ||
-				len(rlm.updated) > 0 ||
-				len(rlm.deleted) > 0 ||
-				len(rlm.escaped) > 0 {
+			len(rlm.newCreated) > 0 ||
+			len(rlm.newEscaped) > 0 ||
+			len(rlm.newDeleted) > 0 ||
+			len(rlm.created) > 0 ||
+			len(rlm.updated) > 0 ||
+			len(rlm.deleted) > 0 ||
+			len(rlm.escaped) > 0 {
 			panic("realm updates in readonly transaction")
 		}
 		return
@@ -361,9 +362,9 @@ func (rlm *Realm) FinalizeRealmTransaction(readonly bool, store Store) {
 		ensureUniq(rlm.newDeleted)
 		ensureUniq(rlm.updated)
 		if false ||
-				rlm.created != nil ||
-				rlm.deleted != nil ||
-				rlm.escaped != nil {
+			rlm.created != nil ||
+			rlm.deleted != nil ||
+			rlm.escaped != nil {
 			panic("realm should not have created, deleted, or escaped marks before beginning finalization")
 		}
 	}
@@ -740,9 +741,9 @@ func (rlm *Realm) saveUnsavedObjectRecursively(store Store, oo Object) {
 		}
 		// deleted objects should not have gotten here.
 		if false ||
-				oo.GetRefCount() <= 0 ||
-				oo.GetIsNewDeleted() ||
-				oo.GetIsDeleted() {
+			oo.GetRefCount() <= 0 ||
+			oo.GetIsNewDeleted() ||
+			oo.GetIsDeleted() {
 			panic("cannot save deleted objects")
 		}
 	}

@@ -41,7 +41,7 @@ func (m *Machine) doOpEval() {
 			v := ptr.Deref()
 
 			//fmt.Println("---v: ", v)
-			v.SetPath(nx.Path)
+			v.SetPath(nx.Path.String())
 			fmt.Println("---v.GetPath: ", v.GetPath())
 
 			//m.PushValue(ptr.Deref())

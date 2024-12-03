@@ -1752,6 +1752,7 @@ func (m *Machine) PushValue(tv TypedValue) {
 	if debug {
 		m.Printf("+v %v\n", tv)
 	}
+	fmt.Printf("+v %v\n", tv)
 	if len(m.Values) == m.NumValues {
 		// TODO tune. also see PushOp().
 		newValues := make([]TypedValue, len(m.Values)*2)
@@ -2148,7 +2149,22 @@ func (m *Machine) PopAsPointer(lx Expr) PointerValue {
 		return xv.GetPointerAtIndex(m.Alloc, m.Store, iv)
 	case *SelectorExpr:
 		xv := m.PopValue()
-		return xv.GetPointerToFromTV(m.Alloc, m.Store, lx.Path)
+		fmt.Println("---SelectorExpr, xv: ", xv)
+		fmt.Println("---lx: ", lx)
+		fmt.Println("---lx.Path: ", lx.Path)
+		pv := xv.GetPointerToFromTV(m.Alloc, m.Store, lx.Path)
+		fmt.Println("---pv: ", pv)
+		fmt.Println("---pv.TV: ", pv.TV)
+		var vp string
+		if nx, ok := lx.X.(*NameExpr); ok {
+			vp += nx.Path.String() + ":"
+		}
+		vp += lx.Path.String()
+
+		fmt.Println("---vp: ", vp)
+		pv.TV.SetPath(vp)
+		return pv
+		//return xv.GetPointerToFromTV(m.Alloc, m.Store, lx.Path)
 	case *StarExpr:
 		ptr := m.PopValue().V.(PointerValue)
 		return ptr

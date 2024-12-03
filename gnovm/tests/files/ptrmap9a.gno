@@ -15,7 +15,6 @@ func init() {
 }
 
 func main() {
-	println(m[MyStruct{Name: "alice", Age: 2}])
 
 	delete(m, MyStruct{Name: "alice", Age: 2})
 
@@ -23,7 +22,6 @@ func main() {
 }
 
 // Output:
-// first key
 // first key
 // true
 

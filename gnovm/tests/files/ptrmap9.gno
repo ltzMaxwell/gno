@@ -28,12 +28,7 @@ func main() {
 // c[15bc39c5756bbda67fd0d56bc9e86b29d7b444fc:5]={
 //     "Fields": [
 //         {
-//             "Path": {
-//                 "Depth": 0,
-//                 "Index": 0,
-//                 "Name": "",
-//                 "Type": 0
-//             },
+//             "Path": "",
 //             "T": {
 //                 "@type": "/gno.PrimitiveType",
 //                 "value": "16"
@@ -45,12 +40,7 @@ func main() {
 //         },
 //         {
 //             "N": "AgAAAAAAAAA=",
-//             "Path": {
-//                 "Depth": 0,
-//                 "Index": 0,
-//                 "Name": "",
-//                 "Type": 0
-//             },
+//             "Path": "",
 //             "T": {
 //                 "@type": "/gno.PrimitiveType",
 //                 "value": "32"

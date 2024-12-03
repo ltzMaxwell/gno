@@ -182,10 +182,11 @@ func (m *Machine) doOpStar() {
 // XXX this is wrong, for var i interface{}; &i is *interface{}.
 func (m *Machine) doOpRef() {
 	rx := m.PopExpr().(*RefExpr)
-	//fmt.Println("---doOpRef, rx: ", rx)
+	fmt.Println("---doOpRef, rx: ", rx)
 	m.Alloc.AllocatePointer()
 	xv := m.PopAsPointer(rx.X)
-	//fmt.Println("---xv: ", xv)
+	fmt.Println("---xv: ", xv)
+	fmt.Println("---xv.TV.Path: ", xv.TV.GetPath())
 	if nv, ok := xv.TV.V.(*NativeValue); ok {
 		// If a native pointer, ensure it is addressable.  This
 		// way, PointerValue{*NativeValue{rv}} can be converted
@@ -210,8 +211,11 @@ func (m *Machine) doOpRef() {
 	}
 
 	if nx, ok := rx.X.(*NameExpr); ok {
-		tv.Path = nx.Path
+		tv.Path = nx.Path.String()
+	} else {
+		tv.Path = xv.TV.GetPath()
 	}
+	fmt.Println("---tv.Path: ", tv.GetPath())
 
 	m.PushValue(tv)
 }
