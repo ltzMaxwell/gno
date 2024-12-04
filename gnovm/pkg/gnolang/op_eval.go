@@ -40,11 +40,12 @@ func (m *Machine) doOpEval() {
 			ptr := lb.GetPointerToMaybeHeapUse(m.Store, nx)
 			v := ptr.Deref()
 
-			//fmt.Println("---v: ", v)
-			v.SetPath(nx.Path.String())
-			fmt.Println("---v.GetPath: ", v.GetPath())
+			fmt.Println("---v: ", v)
+			if _, ok := v.V.(PointerValue); ok {
+				v.SetPath(nx.Path.String())
+				fmt.Println("---v.GetPath: ", v.GetPath())
+			}
 
-			//m.PushValue(ptr.Deref())
 			m.PushValue(v)
 			return
 		}
@@ -261,6 +262,7 @@ func (m *Machine) doOpEval() {
 		m.PushExpr(x.Func)
 		m.PushOp(OpEval)
 	case *IndexExpr:
+		println("---op_eval, index expr")
 		if x.HasOK {
 			m.PushOp(OpIndex2)
 		} else {

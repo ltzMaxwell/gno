@@ -12,28 +12,41 @@ func (m *Machine) doOpIndex1() {
 	if debug {
 		_ = m.PopExpr().(*IndexExpr)
 	} else {
-		m.PopExpr()
-	}
-	iv := m.PopValue()   // index
-	xv := m.PeekValue(1) // x
-	fmt.Println("---doOpIndex1, iv: ", iv)
-	fmt.Println("---doOpIndex1, xv: ", xv)
-	switch ct := baseOf(xv.T).(type) {
-	case *MapType:
-		mv := xv.V.(*MapValue)
-		vv, exists := mv.GetValueForKey(m.Store, iv)
-		if exists {
-			*xv = vv // reuse as result
-		} else {
-			vt := ct.Value
-			*xv = TypedValue{ // reuse as result
-				T: vt,
-				V: defaultValue(m.Alloc, vt),
+		lx := m.PopExpr()
+		vp := lx.(*IndexExpr).X.String() + ":" + lx.(*IndexExpr).Index.String()
+		fmt.Println("---vp: ", vp)
+
+		fmt.Println("---doOpIndex1, lx: ", lx)
+		iv := m.PopValue()   // index
+		xv := m.PeekValue(1) // x
+		fmt.Println("---iv: ", iv)
+		fmt.Println("---xv: ", xv)
+		switch ct := baseOf(xv.T).(type) {
+		case *MapType:
+			mv := xv.V.(*MapValue)
+			vv, exists := mv.GetValueForKey(m.Store, iv)
+			if exists {
+				*xv = vv // reuse as result
+				xv.SetPath(vp)
+			} else {
+				vt := ct.Value
+
+				*xv = TypedValue{ // reuse as result
+					T: vt,
+					V: defaultValue(m.Alloc, vt),
+				}
+				xv.SetPath(vp)
 			}
+		default:
+			res := xv.GetPointerAtIndex(m.Alloc, m.Store, iv)
+			fmt.Println("---res: ", res)
+			*xv = res.Deref() // reuse as result
+
+			xv.SetPath(vp)
+
+			fmt.Println("---*xv: ", *xv)
+			fmt.Println("---xv.GetPath: ", xv.GetPath())
 		}
-	default:
-		res := xv.GetPointerAtIndex(m.Alloc, m.Store, iv)
-		*xv = res.Deref() // reuse as result
 	}
 }
 
@@ -42,43 +55,50 @@ func (m *Machine) doOpIndex2() {
 	if debug {
 		_ = m.PopExpr().(*IndexExpr)
 	} else {
-		m.PopExpr()
-	}
-	iv := m.PeekValue(1) // index
-	xv := m.PeekValue(2) // x
-	switch ct := baseOf(xv.T).(type) {
-	case *MapType:
-		vt := ct.Value
-		if xv.V == nil { // uninitialized map
-			*xv = TypedValue{ // reuse as result
-				T: vt,
-				V: defaultValue(m.Alloc, vt),
-			}
-			*iv = untypedBool(false) // reuse as result
-		} else {
-			mv := xv.V.(*MapValue)
-			vv, exists := mv.GetValueForKey(m.Store, iv)
-			if exists {
-				*xv = vv                // reuse as result
-				*iv = untypedBool(true) // reuse as result
-			} else {
+		lx := m.PopExpr()
+		vp := lx.(*IndexExpr).X.String() + ":" + lx.(*IndexExpr).Index.String()
+		fmt.Println("---vp: ", vp)
+
+		iv := m.PeekValue(1) // index
+		xv := m.PeekValue(2) // x
+		switch ct := baseOf(xv.T).(type) {
+		case *MapType:
+			vt := ct.Value
+			if xv.V == nil { // uninitialized map
 				*xv = TypedValue{ // reuse as result
 					T: vt,
 					V: defaultValue(m.Alloc, vt),
 				}
+				xv.SetPath(vp)
 				*iv = untypedBool(false) // reuse as result
+			} else {
+				mv := xv.V.(*MapValue)
+				vv, exists := mv.GetValueForKey(m.Store, iv)
+				if exists {
+					*xv = vv // reuse as result
+					xv.SetPath(vp)
+					*iv = untypedBool(true) // reuse as result
+				} else {
+					*xv = TypedValue{ // reuse as result
+						T: vt,
+						V: defaultValue(m.Alloc, vt),
+					}
+					xv.SetPath(vp)
+					*iv = untypedBool(false) // reuse as result
+				}
 			}
+		case *NativeType:
+			// TODO: see doOpIndex1()
+			panic("not yet implemented")
+		default:
+			panic("should not happen")
 		}
-	case *NativeType:
-		// TODO: see doOpIndex1()
-		panic("not yet implemented")
-	default:
-		panic("should not happen")
 	}
 }
 
 func (m *Machine) doOpSelector() {
 	sx := m.PopExpr().(*SelectorExpr)
+	fmt.Println("---doOpSelector, sx: ", sx)
 	xv := m.PeekValue(1)
 	res := xv.GetPointerToFromTV(m.Alloc, m.Store, sx.Path).Deref()
 	if debug {
@@ -86,10 +106,19 @@ func (m *Machine) doOpSelector() {
 		m.Printf("+v[S] %v\n", res)
 	}
 	*xv = res // reuse as result
+	//var vp string
+	//if nx, ok := sx.X.(*NameExpr); ok {
+	//	vp += nx.Path.String() + ":"
+	//}
+	//vp += sx.Path.String()
+	//fmt.Println("---vp: ", vp)
+	//
+	//xv.SetPath(vp)
 }
 
 func (m *Machine) doOpSlice() {
 	sx := m.PopExpr().(*SliceExpr)
+	fmt.Println("---doOpSlice, sx: ", sx)
 	var low, high, max int = -1, -1, -1
 	// max
 	if sx.Max != nil {
@@ -145,6 +174,7 @@ func (m *Machine) doOpSlice() {
 // deref, but the result is a pointer-to type.
 func (m *Machine) doOpStar() {
 	xv := m.PopValue()
+	fmt.Println("---doOpStar, xv: ", xv)
 	switch bt := baseOf(xv.T).(type) {
 	case *PointerType:
 		pv := xv.V.(PointerValue)
@@ -212,8 +242,11 @@ func (m *Machine) doOpRef() {
 
 	if nx, ok := rx.X.(*NameExpr); ok {
 		tv.Path = nx.Path.String()
+		println("---rx.X is name x")
 	} else {
 		tv.Path = xv.TV.GetPath()
+		println("---rx.X is NOT name x")
+		fmt.Println("---type of rx.X: ", reflect.TypeOf(rx.X))
 	}
 	fmt.Println("---tv.Path: ", tv.GetPath())
 

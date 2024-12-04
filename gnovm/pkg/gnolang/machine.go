@@ -446,7 +446,7 @@ func (m *Machine) TestMemPackage(t *testing.T, memPkg *gnovm.MemPackage) {
 // starts with `Test`.
 func (m *Machine) TestFunc(t *testing.T, tv TypedValue) {
 	if !(tv.T.Kind() == FuncKind &&
-			strings.HasPrefix(string(tv.V.(*FuncValue).Name), "Test")) {
+		strings.HasPrefix(string(tv.V.(*FuncValue).Name), "Test")) {
 		return // not a test function.
 	}
 	// XXX ensure correct func type.
@@ -1770,7 +1770,7 @@ func (m *Machine) PopValue() (tv *TypedValue) {
 	if debug {
 		m.Printf("-v %v\n", tv)
 	}
-	//fmt.Printf("-v %v\n", tv)
+	fmt.Printf("-v %v\n", tv)
 	m.NumValues--
 	return tv
 }
@@ -2100,6 +2100,7 @@ func (m *Machine) PushForPointer(lx Expr) {
 		m.PushExpr(lx.X)
 		m.PushOp(OpEval)
 	case *StarExpr:
+		println("---star expr")
 		// evaluate X (a reference)
 		m.PushExpr(lx.X)
 		m.PushOp(OpEval)
@@ -2119,6 +2120,7 @@ func (m *Machine) PopAsPointer(lx Expr) PointerValue {
 	fmt.Println("---PopAsPointer, lx: ", lx)
 	switch lx := lx.(type) {
 	case *NameExpr:
+		println("---NameExpr")
 		switch lx.Type {
 		case NameExprTypeNormal:
 			lb := m.LastBlock()
@@ -2141,32 +2143,53 @@ func (m *Machine) PopAsPointer(lx Expr) PointerValue {
 				println("---Not exist")
 				// XXX, make key object owned by map object
 				oo2 := iv.GetFirstObject(m.Store)
-				if oo2 != nil {
+				if oo2 != nil && oo2.GetRefCount() == 0 { // if it's already owned, no attach
 					m.Realm.DidUpdate(mv, nil, oo2)
 				}
 			}
 		}
-		return xv.GetPointerAtIndex(m.Alloc, m.Store, iv)
+		pv := xv.GetPointerAtIndex(m.Alloc, m.Store, iv)
+		fmt.Println("---pv: ", pv)
+		var vp string
+		if nx, ok := lx.X.(*NameExpr); ok {
+			vp += nx.Path.String() + ":"
+		}
+		fmt.Println("---lx.Index: ", lx.Index, reflect.TypeOf(lx.Index))
+		vp += lx.Index.String()
+		pv.TV.SetPath(vp)
+		return pv
 	case *SelectorExpr:
 		xv := m.PopValue()
 		fmt.Println("---SelectorExpr, xv: ", xv)
+		fmt.Println("---xv.GetPath: ", xv.GetPath())
 		fmt.Println("---lx: ", lx)
 		fmt.Println("---lx.Path: ", lx.Path)
 		pv := xv.GetPointerToFromTV(m.Alloc, m.Store, lx.Path)
 		fmt.Println("---pv: ", pv)
-		fmt.Println("---pv.TV: ", pv.TV)
+		fmt.Println("---pv.TV: ", pv.TV.GetPath())
 		var vp string
 		if nx, ok := lx.X.(*NameExpr); ok {
 			vp += nx.Path.String() + ":"
 		}
 		vp += lx.Path.String()
 
-		fmt.Println("---vp: ", vp)
 		pv.TV.SetPath(vp)
 		return pv
 		//return xv.GetPointerToFromTV(m.Alloc, m.Store, lx.Path)
 	case *StarExpr:
-		ptr := m.PopValue().V.(PointerValue)
+		println("---StarExpr")
+		tv := m.PopValue()
+		fmt.Println("---tv: ", tv)
+		fmt.Println("---tv.GetPath: ", tv.GetPath())
+		ptr := tv.V.(PointerValue)
+		//ptr := m.PopValue().V.(PointerValue)
+		fmt.Println("---ptr: ", ptr)
+		fmt.Println("---ptr.TV.GetPath(): ", ptr.TV.GetPath())
+		if nx, ok := lx.X.(*NameExpr); ok {
+			ptr.TV.SetPath(nx.Path.String())
+		} else {
+			ptr.TV.SetPath(tv.GetPath())
+		}
 		return ptr
 	case *CompositeLitExpr: // for *RefExpr
 		tv := *m.PopValue()

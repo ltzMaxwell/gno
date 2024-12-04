@@ -334,6 +334,9 @@ func (m *Machine) doOpBandn() {
 
 // TODO: can be much faster.
 func isEql(store Store, lv, rv *TypedValue) bool {
+	//fmt.Println("---isEql: lv: ", lv)
+	//fmt.Println("---isEql: lv.T.Kind(): ", lv.T.Kind())
+	//fmt.Println("---isEql: rv: ", rv)
 	// If one is undefined, the other must be as well.
 	// Fields/items are set to defaultValue along the way.
 	lvu := lv.IsUndefined()

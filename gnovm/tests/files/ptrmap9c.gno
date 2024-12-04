@@ -8,17 +8,14 @@ type MyStruct struct {
 
 var m = make(map[MyStruct]string)
 
-func init() {
+func main() {
 	i1 := MyStruct{Name: "alice", Age: 2}
 	m[i1] = "first key"
-	println(m[MyStruct{Name: "alice", Age: 2}])
-}
+	println(m[i1])
 
-func main() {
+	delete(m, i1)
 
-	delete(m, MyStruct{Name: "alice", Age: 2})
-
-	println(m[MyStruct{Name: "alice", Age: 2}] == "")
+	println(m[i1] == "")
 }
 
 // Output:
@@ -27,13 +24,42 @@ func main() {
 
 // Realm:
 // switchrealm["gno.land/r/ptr_map"]
+// c[15bc39c5756bbda67fd0d56bc9e86b29d7b444fc:5]={
+//     "Fields": [
+//         {
+//             "Path": "",
+//             "T": {
+//                 "@type": "/gno.PrimitiveType",
+//                 "value": "16"
+//             },
+//             "V": {
+//                 "@type": "/gno.StringValue",
+//                 "value": "alice"
+//             }
+//         },
+//         {
+//             "N": "AgAAAAAAAAA=",
+//             "Path": "",
+//             "T": {
+//                 "@type": "/gno.PrimitiveType",
+//                 "value": "32"
+//             }
+//         }
+//     ],
+//     "ObjectInfo": {
+//         "ID": "15bc39c5756bbda67fd0d56bc9e86b29d7b444fc:5",
+//         "ModTime": "0",
+//         "OwnerID": "15bc39c5756bbda67fd0d56bc9e86b29d7b444fc:3",
+//         "RefCount": "1"
+//     }
+// }
 // u[15bc39c5756bbda67fd0d56bc9e86b29d7b444fc:3]={
 //     "List": {
 //         "List": []
 //     },
 //     "ObjectInfo": {
 //         "ID": "15bc39c5756bbda67fd0d56bc9e86b29d7b444fc:3",
-//         "ModTime": "5",
+//         "ModTime": "4",
 //         "OwnerID": "15bc39c5756bbda67fd0d56bc9e86b29d7b444fc:2",
 //         "RefCount": "1"
 //     }
@@ -114,45 +140,8 @@ func main() {
 //             },
 //             "V": {
 //                 "@type": "/gno.RefValue",
-//                 "Hash": "896c84e53ec971bcc4dfb30c374852a796fc0395",
+//                 "Hash": "ea82cce4290f39cd9dc4e06ec49684469ba0fe36",
 //                 "ObjectID": "15bc39c5756bbda67fd0d56bc9e86b29d7b444fc:3"
-//             }
-//         },
-//         {
-//             "Path": "",
-//             "T": {
-//                 "@type": "/gno.FuncType",
-//                 "Params": [],
-//                 "Results": []
-//             },
-//             "V": {
-//                 "@type": "/gno.FuncValue",
-//                 "Closure": {
-//                     "@type": "/gno.RefValue",
-//                     "Escaped": true,
-//                     "ObjectID": "15bc39c5756bbda67fd0d56bc9e86b29d7b444fc:4"
-//                 },
-//                 "FileName": "main.gno",
-//                 "IsMethod": false,
-//                 "Name": "init.2",
-//                 "NativeName": "",
-//                 "NativePkg": "",
-//                 "PkgPath": "gno.land/r/ptr_map",
-//                 "Source": {
-//                     "@type": "/gno.RefNode",
-//                     "BlockNode": null,
-//                     "Location": {
-//                         "Column": "1",
-//                         "File": "main.gno",
-//                         "Line": "11",
-//                         "PkgPath": "gno.land/r/ptr_map"
-//                     }
-//                 },
-//                 "Type": {
-//                     "@type": "/gno.FuncType",
-//                     "Params": [],
-//                     "Results": []
-//                 }
 //             }
 //         },
 //         {
@@ -181,7 +170,7 @@ func main() {
 //                     "Location": {
 //                         "Column": "1",
 //                         "File": "main.gno",
-//                         "Line": "17",
+//                         "Line": "11",
 //                         "PkgPath": "gno.land/r/ptr_map"
 //                     }
 //                 },
@@ -194,4 +183,3 @@ func main() {
 //         }
 //     ]
 // }
-// d[15bc39c5756bbda67fd0d56bc9e86b29d7b444fc:5]

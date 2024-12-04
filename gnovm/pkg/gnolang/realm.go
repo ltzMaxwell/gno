@@ -128,9 +128,51 @@ func (rlm *Realm) String() string {
 //----------------------------------------
 // ownership hooks
 
-func (rlm *Realm) DelObjectByValue(po, xo Object) {
+func checkSameValue(store Store, v1, v2 Value) bool {
+	fmt.Println("checkSameValue:", v1)
+	fmt.Println("v2:", v2)
+	switch v := v1.(type) {
+	case *StructValue:
+		if sv, ok := v2.(*StructValue); ok {
+			if len(v.Fields) != len(sv.Fields) {
+				return false
+			}
+			for i, f := range v.Fields {
+				if !isEql(store, &f, &sv.Fields[i]) {
+					return false
+				}
+			}
+		}
+	case *ArrayValue:
+		if av, ok := v2.(*ArrayValue); ok {
+			if v.GetLength() != av.GetLength() {
+				return false
+			}
+			for i := 0; i < v.GetLength(); i++ {
+				if v.Data[i] != av.Data[i] {
+					return false
+				}
+				if !isEql(store, &v.List[i], &av.List[i]) {
+					return false
+				}
+			}
+		}
+	case *HeapItemValue:
+		if av, ok := v2.(*HeapItemValue); ok {
+			if !isEql(store, &v.Value, &av.Value) {
+				return false
+			}
+		}
+	default:
+		// do nothing
+	}
+	return true
+}
+
+func (rlm *Realm) DelObjectByValue(store Store, po, xo Object) {
+	fmt.Println("---DelObjectByValue, po: ", po)
+	fmt.Println("---xo: ", xo)
 	var more []Value
-	//children := getChildObjects(po, more)
 	var children []Value
 	if mv, ok := po.(*MapValue); ok {
 		for cur := mv.List.Head; cur != nil; cur = cur.Next {
@@ -139,26 +181,30 @@ func (rlm *Realm) DelObjectByValue(po, xo Object) {
 			for i, child := range children {
 				fmt.Printf("---child[%d]: %v \n", i, child)
 				fmt.Println("---child.GetIsReal(): ", child.(Object).GetIsReal())
-				// find same value object, should be unique in map key
-				switch v := child.(Object).(type) {
-				case *StructValue:
-					if sv, ok := xo.(*StructValue); ok {
-						fmt.Println("---obj_info of v: ", v.ObjectInfo)
-						fmt.Println("---obj_info of sv: ", sv.ObjectInfo)
-						if reflect.DeepEqual(v.Fields, sv.Fields) {
-							ooo := child.(Object)
-							if ooo.GetIsReal() {
-								println("---xo is real")
-								//ooo.DecRefCount()
-								fmt.Println("---ooo refCount after dec: ", ooo.DecRefCount())
-								rlm.MarkNewDeleted(ooo)
-							}
-						}
+				fmt.Println("---child.GetRefCount(): ", child.(Object).GetRefCount())
+				fmt.Println("---po.GetObjID: ", po.GetObjectID())
+
+				if !child.(Object).GetIsReal() {
+					return
+				}
+				// make sure it's owned(only) by po
+				if child.(Object).GetOwnerID() != po.MustGetObjectID() {
+					println("---not owned by po, do nothing")
+					return
+				}
+
+				if checkSameValue(store, child, xo) {
+					fmt.Println("---same value")
+					ooo := child.(Object)
+					fmt.Println("---ooo.GetRefCount: ", ooo.GetRefCount())
+					if ooo.GetIsReal() {
+						println("---xo is real")
+						ooo.DecRefCount()
+						fmt.Println("---ooo refCount after dec: ", ooo.GetRefCount())
+						rlm.MarkNewDeleted(ooo)
+					} else {
+						println("---ooo is NOT real")
 					}
-				case *ArrayValue:
-				case *HeapItemValue:
-				default:
-					panic("should not happen, invalid map key type")
 				}
 			}
 		}
@@ -173,6 +219,12 @@ func (rlm *Realm) DelObjectByValue(po, xo Object) {
 // xo or co is nil if the element value is undefined or has no
 // associated object.
 func (rlm *Realm) DidUpdate(po, xo, co Object) {
+	fmt.Println("---DidUpdate, po: ", po)
+	fmt.Println("---co: ", co)
+	fmt.Println("---xo: ", xo)
+	if co != nil {
+		fmt.Println("---co.GetRefCount(): ", co.GetRefCount())
+	}
 	if rlm == nil {
 		return
 	}
@@ -216,7 +268,10 @@ func (rlm *Realm) DidUpdate(po, xo, co Object) {
 		} else if co.GetIsReal() {
 			rlm.MarkDirty(co)
 		} else {
+			fmt.Printf("---set owner for %v to be %v \n", co, po)
 			co.SetOwner(po)
+			fmt.Println("---co.GetOwnerID(): ", co.GetOwnerID())
+			fmt.Println("---co.GetObjectInfo(): ", co.GetObjectInfo())
 			rlm.MarkNewReal(co)
 		}
 	}
@@ -341,13 +396,13 @@ func (rlm *Realm) FinalizeRealmTransaction(readonly bool, store Store) {
 	fmt.Println("---FinalizeRealmTransaction")
 	if readonly {
 		if true ||
-			len(rlm.newCreated) > 0 ||
-			len(rlm.newEscaped) > 0 ||
-			len(rlm.newDeleted) > 0 ||
-			len(rlm.created) > 0 ||
-			len(rlm.updated) > 0 ||
-			len(rlm.deleted) > 0 ||
-			len(rlm.escaped) > 0 {
+				len(rlm.newCreated) > 0 ||
+				len(rlm.newEscaped) > 0 ||
+				len(rlm.newDeleted) > 0 ||
+				len(rlm.created) > 0 ||
+				len(rlm.updated) > 0 ||
+				len(rlm.deleted) > 0 ||
+				len(rlm.escaped) > 0 {
 			panic("realm updates in readonly transaction")
 		}
 		return
@@ -362,9 +417,9 @@ func (rlm *Realm) FinalizeRealmTransaction(readonly bool, store Store) {
 		ensureUniq(rlm.newDeleted)
 		ensureUniq(rlm.updated)
 		if false ||
-			rlm.created != nil ||
-			rlm.deleted != nil ||
-			rlm.escaped != nil {
+				rlm.created != nil ||
+				rlm.deleted != nil ||
+				rlm.escaped != nil {
 			panic("realm should not have created, deleted, or escaped marks before beginning finalization")
 		}
 	}
@@ -519,10 +574,12 @@ func (rlm *Realm) processNewDeletedMarks(store Store) {
 			}
 		}
 		if oo.GetRefCount() > 0 {
+			println("---refCount > 0")
 			oo.SetIsNewDeleted(false)
 			// skip if became undeleted.
 			continue
 		} else {
+			println("---refCount == 0")
 			rlm.decRefDeletedDescendants(store, oo)
 		}
 	}
@@ -741,9 +798,9 @@ func (rlm *Realm) saveUnsavedObjectRecursively(store Store, oo Object) {
 		}
 		// deleted objects should not have gotten here.
 		if false ||
-			oo.GetRefCount() <= 0 ||
-			oo.GetIsNewDeleted() ||
-			oo.GetIsDeleted() {
+				oo.GetRefCount() <= 0 ||
+				oo.GetIsNewDeleted() ||
+				oo.GetIsDeleted() {
 			panic("cannot save deleted objects")
 		}
 	}
@@ -808,7 +865,9 @@ func (rlm *Realm) saveObject(store Store, oo Object) {
 // removeDeletedObjects
 
 func (rlm *Realm) removeDeletedObjects(store Store) {
+	fmt.Println("---removing deleted objects")
 	for _, do := range rlm.deleted {
+		fmt.Println("---do: ", do)
 		store.DelObject(do)
 	}
 }

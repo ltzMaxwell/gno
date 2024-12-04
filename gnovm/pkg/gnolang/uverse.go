@@ -751,7 +751,7 @@ func makeUverseNode() {
 					// mark key as deleted
 					keyObj := itv.GetFirstObject(m.Store)
 					//m.Realm.DidUpdate(mv, keyObj, nil)
-					m.Realm.DelObjectByValue(mv, keyObj)
+					m.Realm.DelObjectByValue(m.Store, mv, keyObj)
 
 					// mark value as deleted
 					valObj := val.GetFirstObject(m.Store)

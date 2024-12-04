@@ -7,18 +7,17 @@ type MyStruct struct {
 }
 
 var m = make(map[MyStruct]string)
+var i1 = MyStruct{Name: "alice", Age: 2} // this is owned by package block
 
 func init() {
-	i1 := MyStruct{Name: "alice", Age: 2}
 	m[i1] = "first key"
-	println(m[MyStruct{Name: "alice", Age: 2}])
+	println(m[i1])
 }
 
 func main() {
+	delete(m, i1)
 
-	delete(m, MyStruct{Name: "alice", Age: 2})
-
-	println(m[MyStruct{Name: "alice", Age: 2}] == "")
+	println(m[i1] == "")
 }
 
 // Output:
@@ -121,6 +120,18 @@ func main() {
 //         {
 //             "Path": "",
 //             "T": {
+//                 "@type": "/gno.RefType",
+//                 "ID": "gno.land/r/ptr_map.MyStruct"
+//             },
+//             "V": {
+//                 "@type": "/gno.RefValue",
+//                 "Hash": "a0b24ad8a3e16a1c44fb342faf4e71657fcec26b",
+//                 "ObjectID": "15bc39c5756bbda67fd0d56bc9e86b29d7b444fc:4"
+//             }
+//         },
+//         {
+//             "Path": "",
+//             "T": {
 //                 "@type": "/gno.FuncType",
 //                 "Params": [],
 //                 "Results": []
@@ -130,11 +141,11 @@ func main() {
 //                 "Closure": {
 //                     "@type": "/gno.RefValue",
 //                     "Escaped": true,
-//                     "ObjectID": "15bc39c5756bbda67fd0d56bc9e86b29d7b444fc:4"
+//                     "ObjectID": "15bc39c5756bbda67fd0d56bc9e86b29d7b444fc:5"
 //                 },
 //                 "FileName": "main.gno",
 //                 "IsMethod": false,
-//                 "Name": "init.2",
+//                 "Name": "init.3",
 //                 "NativeName": "",
 //                 "NativePkg": "",
 //                 "PkgPath": "gno.land/r/ptr_map",
@@ -144,7 +155,7 @@ func main() {
 //                     "Location": {
 //                         "Column": "1",
 //                         "File": "main.gno",
-//                         "Line": "11",
+//                         "Line": "12",
 //                         "PkgPath": "gno.land/r/ptr_map"
 //                     }
 //                 },
@@ -167,7 +178,7 @@ func main() {
 //                 "Closure": {
 //                     "@type": "/gno.RefValue",
 //                     "Escaped": true,
-//                     "ObjectID": "15bc39c5756bbda67fd0d56bc9e86b29d7b444fc:4"
+//                     "ObjectID": "15bc39c5756bbda67fd0d56bc9e86b29d7b444fc:5"
 //                 },
 //                 "FileName": "main.gno",
 //                 "IsMethod": false,
@@ -194,4 +205,3 @@ func main() {
 //         }
 //     ]
 // }
-// d[15bc39c5756bbda67fd0d56bc9e86b29d7b444fc:5]
