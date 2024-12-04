@@ -28,6 +28,7 @@ func main() {
 	println(m[&j1])
 
 	*i = 2
+	r = GetFromMap()
 	println(r == 5)
 }
 

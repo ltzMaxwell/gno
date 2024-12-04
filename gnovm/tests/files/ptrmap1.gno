@@ -24,6 +24,7 @@ func main() {
 	println(r == 5)
 
 	*i = 2
+	r = GetFromMap()
 	println(r == 5)
 }
 
