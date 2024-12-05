@@ -16,6 +16,10 @@ var (
 	i2 = &MyStruct{Name: "bob"}
 )
 
+func mutate() {
+	i1.Name = "Clark"
+}
+
 func main() {
 
 	// Create an array of pointers to MyStruct
@@ -33,7 +37,7 @@ func main() {
 	// Example of pointer equality
 	fmt.Println("Are key1 and key2 equal?", key1 == key2)
 
-	i1.Name = "Clark"
+	mutate()
 	fmt.Println("Value for key1:", m[key1])
 }
 

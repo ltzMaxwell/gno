@@ -1,4 +1,5 @@
-package main
+// PKGPATH: gno.land/r/ptr_map
+package ptr_map
 
 type Foo struct {
 	name string

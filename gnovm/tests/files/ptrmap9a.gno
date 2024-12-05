@@ -9,14 +9,14 @@ type MyStruct struct {
 var m = make(map[MyStruct]string)
 
 func init() {
-	i1 := MyStruct{Name: "alice", Age: 2}
+	i1 := MyStruct{Name: "alice", Age: 2} // i1 attached after init
 	m[i1] = "first key"
 	println(m[MyStruct{Name: "alice", Age: 2}])
 }
 
 func main() {
 
-	delete(m, MyStruct{Name: "alice", Age: 2})
+	delete(m, MyStruct{Name: "alice", Age: 2}) // delete key object as well
 
 	println(m[MyStruct{Name: "alice", Age: 2}] == "")
 }

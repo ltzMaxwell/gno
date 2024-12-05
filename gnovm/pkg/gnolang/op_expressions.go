@@ -106,14 +106,14 @@ func (m *Machine) doOpSelector() {
 		m.Printf("+v[S] %v\n", res)
 	}
 	*xv = res // reuse as result
-	//var vp string
-	//if nx, ok := sx.X.(*NameExpr); ok {
-	//	vp += nx.Path.String() + ":"
-	//}
-	//vp += sx.Path.String()
-	//fmt.Println("---vp: ", vp)
-	//
-	//xv.SetPath(vp)
+	var vp string
+	if nx, ok := sx.X.(*NameExpr); ok {
+		vp += nx.Path.String() + ":"
+	}
+	vp += sx.Path.String()
+	fmt.Println("---vp: ", vp)
+
+	xv.SetPath(vp)
 }
 
 func (m *Machine) doOpSlice() {
@@ -240,14 +240,8 @@ func (m *Machine) doOpRef() {
 		V: xv,
 	}
 
-	if nx, ok := rx.X.(*NameExpr); ok {
-		tv.Path = nx.Path.String()
-		println("---rx.X is name x")
-	} else {
-		tv.Path = xv.TV.GetPath()
-		println("---rx.X is NOT name x")
-		fmt.Println("---type of rx.X: ", reflect.TypeOf(rx.X))
-	}
+	tv.Path = xv.TV.GetPath()
+	fmt.Println("---type of rx.X: ", reflect.TypeOf(rx.X))
 	fmt.Println("---tv.Path: ", tv.GetPath())
 
 	m.PushValue(tv)

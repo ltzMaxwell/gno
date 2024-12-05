@@ -796,7 +796,7 @@ func (mv *MapValue) GetPointerForKey(alloc *Allocator, store Store, key *TypedVa
 // Like GetPointerForKey, but does not create a slot if key
 // doesn't exist.
 func (mv *MapValue) GetValueForKey(store Store, key *TypedValue) (val TypedValue, ok bool) {
-	//fmt.Println("---GetValueForkey, key: ", key)
+	fmt.Println("---GetValueForkey, key: ", key)
 	kmk := key.ComputeMapKey(store, false)
 	if mli, exists := mv.vmap[kmk]; exists {
 		fillValueTV(store, &mli.Value)
@@ -1552,6 +1552,7 @@ func (tv *TypedValue) AssertNonNegative(msg string) {
 
 func (tv *TypedValue) ComputeMapKey(store Store, omitType bool) MapKey {
 	fmt.Println("---ComputeMapKey, tv: ", tv)
+	fmt.Println("---type of tv.T: ", reflect.TypeOf(tv.T))
 	fmt.Println("---path: ", tv.GetPath())
 	// map key might be refValue that was previously attached
 	if _, ok := tv.V.(RefValue); ok {

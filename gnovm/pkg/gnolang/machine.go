@@ -2121,22 +2121,29 @@ func (m *Machine) PopAsPointer(lx Expr) PointerValue {
 	switch lx := lx.(type) {
 	case *NameExpr:
 		println("---NameExpr")
-		switch lx.Type {
-		case NameExprTypeNormal:
-			lb := m.LastBlock()
-			return lb.GetPointerTo(m.Store, lx.Path)
-		case NameExprTypeHeapUse:
-			lb := m.LastBlock()
-			return lb.GetPointerToHeapUse(m.Store, lx.Path)
-		case NameExprTypeHeapClosure:
-			panic("should not happen")
-		default:
-			panic("unexpected NameExpr in PopAsPointer")
-		}
+		lb := m.LastBlock()
+		ptr := lb.GetPointerToMaybeHeapUse(m.Store, lx)
+		ptr.TV.SetPath(lx.Path.String())
+		return ptr
+
+		//switch lx.Type {
+		//case NameExprTypeNormal:
+		//	lb := m.LastBlock()
+		//	return lb.GetPointerTo(m.Store, lx.Path)
+		//case NameExprTypeHeapUse:
+		//	lb := m.LastBlock()
+		//	return lb.GetPointerToHeapUse(m.Store, lx.Path)
+		//case NameExprTypeHeapClosure:
+		//	panic("should not happen")
+		//default:
+		//	panic("unexpected NameExpr in PopAsPointer")
+		//}
 	case *IndexExpr:
 		iv := m.PopValue()
 		xv := m.PopValue()
-		fmt.Println("---index expr, iv, path of iv: ", iv, iv.GetPath())
+		fmt.Println("---index expr, iv: ", iv)
+		//fmt.Println("---index expr, xv: ", xv)
+		fmt.Println("---path of iv: ", iv.GetPath())
 		if mv, ok := xv.V.(*MapValue); ok {
 			kmk := iv.ComputeMapKey(m.Store, false)
 			if _, exist := mv.vmap[kmk]; !exist {

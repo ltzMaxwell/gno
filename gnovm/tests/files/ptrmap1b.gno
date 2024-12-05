@@ -3,7 +3,6 @@ package ptr_map
 
 var (
 	m       = map[*int]int{}
-	i       = new(int)
 	a, b, c = 1, 2, 3
 	s       = []*int{&a, &b, &c}
 )
@@ -17,7 +16,6 @@ func GetFromMap() int {
 }
 
 func init() {
-	*i = 0
 	AddToMap(5)
 }
 
@@ -25,7 +23,8 @@ func main() {
 	r := GetFromMap()
 	println(r == 5)
 
-	*i = 2
+	a = 0
+
 	r = GetFromMap()
 	println(r == 5)
 }
