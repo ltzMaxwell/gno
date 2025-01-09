@@ -5,6 +5,10 @@ import (
 	"strconv"
 )
 
+const A = "aaa"
+
+var B = "bbb"
+
 // NOTE: this is selectively copied over from tm2/pkgs/std/coin.go
 
 // Coin holds some amount of one currency.

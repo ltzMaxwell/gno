@@ -266,16 +266,19 @@ Main:
 						case fv.Name == "len":
 							at := evalStaticTypeOf(store, last, currExpr.Args[0])
 							fmt.Println("---at, type of at: ", at, reflect.TypeOf(at))
+							//fmt.Println("---arg0, type of arg0: ", currExpr.Args[0], reflect.TypeOf(currExpr.Args[0]))
 							if _, ok := baseOf(at).(*ArrayType); ok {
 								// ok
 								break Main
-							} else {
-								assertValidConstValue(store, last, currExpr.Args[0], nil)
+							} else if _, ok := currExpr.Args[0].(*ConstExpr); ok {
+								if _, ok := baseOf(at).(PrimitiveType); ok && at.Kind() == StringKind {
+									break Main
+								}
 							}
-							break Main
+							//break Main
 						case fv.Name == "cap":
 							at := evalStaticTypeOf(store, last, currExpr.Args[0])
-							fmt.Println("---at, type of at: ", at, reflect.TypeOf(at))
+							//fmt.Println("---at, type of at: ", at, reflect.TypeOf(at))
 							if _, ok := baseOf(at).(*ArrayType); ok {
 								// ok
 								break Main
