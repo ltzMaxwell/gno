@@ -1051,6 +1051,7 @@ func preprocess1(store Store, ctx BlockNode, n Node) Node {
 
 			// TRANS_LEAVE -----------------------
 			case *BasicLitExpr:
+				fmt.Println("trans_leave, basicLitExpr")
 				// Replace with *ConstExpr.
 				cx := evalConst(store, last, n)
 				return cx, TRANS_CONTINUE
@@ -2287,6 +2288,7 @@ func preprocess1(store Store, ctx BlockNode, n Node) Node {
 
 			// TRANS_LEAVE -----------------------
 			case *ValueDecl:
+				fmt.Println("trans_leave, value decl, n: ", n)
 				assertValidAssignRhs(store, last, n)
 
 				// evaluate value if const expr.
@@ -3286,6 +3288,7 @@ func getResultTypedValues(cx *CallExpr) []TypedValue {
 // composite exprs/nodes that contain constant expression nodes (e.g. const
 // exprs in the rhs of AssignStmts).
 func evalConst(store Store, last BlockNode, x Expr) *ConstExpr {
+	fmt.Println("evalConst, x: ", x)
 	// TODO: some check or verification for ensuring x
 	// is constant?  From the machine?
 	m := NewMachine(".dontcare", store)
@@ -3298,6 +3301,7 @@ func evalConst(store Store, last BlockNode, x Expr) *ConstExpr {
 		Source:     x,
 		TypedValue: cv,
 	}
+	defer fmt.Println("cx: ", cx)
 	cx.SetLine(x.GetLine())
 	cx.SetAttribute(ATTR_PREPROCESSED, true)
 	setConstAttrs(cx)

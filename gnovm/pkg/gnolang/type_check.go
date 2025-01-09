@@ -247,11 +247,14 @@ func assertValidConstValue(store Store, last BlockNode, currExpr, parentExpr Exp
 	fmt.Println("assertValidConstValue, currExpr: ", currExpr, reflect.TypeOf(currExpr))
 Main:
 	switch currExpr := currExpr.(type) {
-	case *BasicLitExpr:
+	//case *BasicLitExpr:
 	case *ConstExpr:
 	case *BinaryExpr:
 		assertValidConstValue(store, last, currExpr.Left, parentExpr)
 		assertValidConstValue(store, last, currExpr.Right, parentExpr)
+	case *UnaryExpr:
+		assertValidConstValue(store, last, currExpr.X, parentExpr)
+
 	case *CallExpr:
 		ift := evalStaticTypeOf(store, last, currExpr.Func)
 		switch baseOf(ift).(type) {
@@ -264,9 +267,9 @@ Main:
 						// TODO: should support min, max, real, imag
 						switch {
 						case fv.Name == "len":
+							fmt.Println("---func len, arg0, type of arg0: ", currExpr.Args[0], reflect.TypeOf(currExpr.Args[0]))
 							at := evalStaticTypeOf(store, last, currExpr.Args[0])
 							fmt.Println("---at, type of at: ", at, reflect.TypeOf(at))
-							//fmt.Println("---arg0, type of arg0: ", currExpr.Args[0], reflect.TypeOf(currExpr.Args[0]))
 							if _, ok := baseOf(at).(*ArrayType); ok {
 								// ok
 								break Main
@@ -297,6 +300,10 @@ Main:
 				panic(fmt.Sprintf("%s (value of type %s) is not constant", currExpr.String(), tup.Elts[0]))
 			default:
 				panic(fmt.Sprintf("multiple-value %s (value of type %s) in single-value context", currExpr.String(), tup.Elts))
+			}
+		case *TypeType:
+			for _, arg := range currExpr.Args {
+				assertValidConstValue(store, last, arg, currExpr)
 			}
 		case *NativeType:
 			// Todo: should add a test after the fix of https://github.com/gnolang/gno/issues/3006
