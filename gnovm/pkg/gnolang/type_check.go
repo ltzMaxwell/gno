@@ -244,46 +244,19 @@ func assertValidConstExpr(store Store, last BlockNode, n *ValueDecl, expr Expr) 
 }
 
 func assertValidConstValue(store Store, last BlockNode, currExpr, parentExpr Expr) {
+	fmt.Println("assertValidConstValue, currExpr: ", currExpr, reflect.TypeOf(currExpr))
 Main:
 	switch currExpr := currExpr.(type) {
-	case *NameExpr:
-		t := evalStaticTypeOf(store, last, currExpr)
-		if _, ok := t.(*TypeType); ok {
-			t = evalStaticType(store, last, currExpr)
-		}
-		// special case for len, cap
-		if isParentCallExprWithArrayArg(t, parentExpr) {
-			break Main
-		}
-		panic(fmt.Sprintf("%s (variable of type %s) is not constant", currExpr.Name, t))
-	case *TypeAssertExpr:
-		ty := evalStaticTypeOf(store, last, currExpr)
-		if _, ok := ty.(*TypeType); ok {
-			ty = evalStaticType(store, last, currExpr)
-		}
-		// special case for len, cap
-		if isParentCallExprWithArrayArg(ty, parentExpr) {
-			break Main
-		}
-		panic(fmt.Sprintf("%s (comma, ok expression of type %s) is not constant", currExpr.String(), currExpr.Type))
-	case *IndexExpr:
-		ty := evalStaticTypeOf(store, last, currExpr)
-		if _, ok := ty.(*TypeType); ok {
-			ty = evalStaticType(store, last, currExpr)
-		}
-		// TODO: should add a test after the fix of https://github.com/gnolang/gno/issues/3409
-		// special case for len, cap
-		if isParentCallExprWithArrayArg(ty, parentExpr) {
-			break Main
-		}
-
-		panic(fmt.Sprintf("%s (variable of type %s) is not constant", currExpr.String(), currExpr.X))
+	case *BasicLitExpr:
+	case *ConstExpr:
+	case *BinaryExpr:
+		assertValidConstValue(store, last, currExpr.Left, parentExpr)
+		assertValidConstValue(store, last, currExpr.Right, parentExpr)
 	case *CallExpr:
 		ift := evalStaticTypeOf(store, last, currExpr.Func)
 		switch baseOf(ift).(type) {
 		case *FuncType:
 			tup := evalStaticTypeOfRaw(store, last, currExpr).(*tupleType)
-
 			// check for built-in functions
 			if cx, ok := currExpr.Func.(*ConstExpr); ok {
 				if fv, ok := cx.V.(*FuncValue); ok {
@@ -291,11 +264,29 @@ Main:
 						// TODO: should support min, max, real, imag
 						switch {
 						case fv.Name == "len":
-							assertValidConstValue(store, last, currExpr.Args[0], currExpr)
+							at := evalStaticTypeOf(store, last, currExpr.Args[0])
+							fmt.Println("---at, type of at: ", at, reflect.TypeOf(at))
+							if _, ok := baseOf(at).(*ArrayType); ok {
+								// ok
+								break Main
+							} else if tt, ok := baseOf(at).(PrimitiveType); ok {
+								if tt.Kind() == StringKind {
+									// ok
+									break Main
+								}
+							} else {
+								panic(fmt.Sprintf("%s (variable of type %s) is not constant", currExpr.String(), currExpr.Func))
+							}
 							break Main
 						case fv.Name == "cap":
-							assertValidConstValue(store, last, currExpr.Args[0], currExpr)
-							break Main
+							at := evalStaticTypeOf(store, last, currExpr.Args[0])
+							fmt.Println("---at, type of at: ", at, reflect.TypeOf(at))
+							if _, ok := baseOf(at).(*ArrayType); ok {
+								// ok
+								break Main
+							} else {
+								panic(fmt.Sprintf("%s (variable of type %s) is not constant", currExpr.String(), currExpr.Func))
+							}
 						}
 					}
 				}
@@ -309,10 +300,6 @@ Main:
 			default:
 				panic(fmt.Sprintf("multiple-value %s (value of type %s) in single-value context", currExpr.String(), tup.Elts))
 			}
-		case *TypeType:
-			for _, arg := range currExpr.Args {
-				assertValidConstValue(store, last, arg, currExpr)
-			}
 		case *NativeType:
 			// Todo: should add a test after the fix of https://github.com/gnolang/gno/issues/3006
 			ty := evalStaticType(store, last, currExpr.Func)
@@ -322,11 +309,9 @@ Main:
 				"unexpected func type %v (%v)",
 				ift, reflect.TypeOf(ift)))
 		}
-	case *BinaryExpr:
-		assertValidConstValue(store, last, currExpr.Left, parentExpr)
-		assertValidConstValue(store, last, currExpr.Right, parentExpr)
 	case *SelectorExpr:
 		xt := evalStaticTypeOf(store, last, currExpr.X)
+		fmt.Println("xt, type of xt: ", xt, reflect.TypeOf(xt))
 		switch xt := xt.(type) {
 		case *PackageType:
 			var pv *PackageValue
@@ -349,30 +334,16 @@ Main:
 			if pv.GetBlock(store).Source.GetIsConst(store, currExpr.Sel) {
 				break Main
 			}
-
 			tt := pv.GetBlock(store).Source.GetStaticTypeOf(store, currExpr.Sel)
 			panic(fmt.Sprintf("%s (variable of type %s) is not constant", currExpr.String(), tt))
 		case *PointerType, *DeclaredType, *StructType, *InterfaceType, *TypeType, *NativeType:
 			ty := evalStaticTypeOf(store, last, currExpr)
-			if _, ok := ty.(*TypeType); ok {
-				ty = evalStaticType(store, last, currExpr)
-			}
-
-			// special case for len, cap
-			if isParentCallExprWithArrayArg(ty, parentExpr) {
-				break Main
-			}
 			panic(fmt.Sprintf("%s (variable of type %s) is not constant", currExpr.String(), ty))
 		default:
 			panic(fmt.Sprintf(
 				"unexpected selector expression type %v",
 				reflect.TypeOf(xt)))
 		}
-
-	case *ConstExpr:
-	case *BasicLitExpr:
-	case *CompositeLitExpr:
-		assertValidConstValue(store, last, currExpr.Type, parentExpr)
 	default:
 		ift := evalStaticTypeOf(store, last, currExpr)
 		if _, ok := ift.(*TypeType); ok {

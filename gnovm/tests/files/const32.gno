@@ -8,4 +8,4 @@ func main() {
 }
 
 // Error:
-// main/files/const32.gno:6:8: [](const-type string) (variable of type []string) is not constant
+// main/files/const32.gno:6:8: (const (len func(x interface{})( int)))([](const-type string){}) (variable of type (const (len func(x interface{})( int)))) is not constant

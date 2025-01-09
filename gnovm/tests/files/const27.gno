@@ -13,4 +13,4 @@ func main() {
 }
 
 // Error:
-// main/files/const27.gno:11:8: i<VPBlock(1,0)>.((const-type int)) (comma, ok expression of type (const-type int)) is not constant
+// main/files/const27.gno:11:8: i<VPBlock(1,0)>.((const-type int)) (variable of type int) is not constant
