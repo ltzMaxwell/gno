@@ -269,13 +269,8 @@ Main:
 							if _, ok := baseOf(at).(*ArrayType); ok {
 								// ok
 								break Main
-							} else if tt, ok := baseOf(at).(PrimitiveType); ok {
-								if tt.Kind() == StringKind {
-									// ok
-									break Main
-								}
 							} else {
-								panic(fmt.Sprintf("%s (variable of type %s) is not constant", currExpr.String(), currExpr.Func))
+								assertValidConstValue(store, last, currExpr.Args[0], nil)
 							}
 							break Main
 						case fv.Name == "cap":
