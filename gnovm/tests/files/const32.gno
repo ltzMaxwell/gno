@@ -3,7 +3,7 @@ package main
 import "fmt"
 
 func main() {
-	const t = 1 + 2 + len([]string{})
+	const t = len([]string{})
 	fmt.Println(t)
 }
 

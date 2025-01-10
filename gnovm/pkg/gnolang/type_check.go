@@ -236,6 +236,7 @@ func assertValidConstExpr(store Store, last BlockNode, n *ValueDecl, expr Expr) 
 		panic(fmt.Sprintf("%s (variable of type nil) is not constant", expr))
 	}
 
+	fmt.Println("---baseOf(nt): ", baseOf(nt))
 	if _, ok := baseOf(nt).(PrimitiveType); !ok {
 		panic(fmt.Sprintf("%s (variable of type %s) is not constant", expr, nt))
 	}
@@ -253,8 +254,8 @@ Main:
 		assertValidConstValue(store, last, currExpr.Left, parentExpr)
 		assertValidConstValue(store, last, currExpr.Right, parentExpr)
 	case *UnaryExpr:
+		// *, & is filter out previously since they are not primitive
 		assertValidConstValue(store, last, currExpr.X, parentExpr)
-
 	case *CallExpr:
 		ift := evalStaticTypeOf(store, last, currExpr.Func)
 		switch baseOf(ift).(type) {
@@ -358,15 +359,15 @@ Main:
 	}
 }
 
-// isParentCallExprWithArrayArg checks if the parent expression is a call expression with an array argument.
-// This is used to determine whether to skip the constant value check.
-// This is because the  parent expression may be a call to the len or cap built-in functions.
-func isParentCallExprWithArrayArg(currType Type, parentExpr Expr) bool {
-	_, okArray := baseOf(currType).(*ArrayType)
-	_, okCallExpr := parentExpr.(*CallExpr)
-
-	return okArray && okCallExpr
-}
+//// isParentCallExprWithArrayArg checks if the parent expression is a call expression with an array argument.
+//// This is used to determine whether to skip the constant value check.
+//// This is because the  parent expression may be a call to the len or cap built-in functions.
+//func isParentCallExprWithArrayArg(currType Type, parentExpr Expr) bool {
+//	_, okArray := baseOf(currType).(*ArrayType)
+//	_, okCallExpr := parentExpr.(*CallExpr)
+//
+//	return okArray && okCallExpr
+//}
 
 // checkValDefineMismatch checks for mismatch between the number of variables and values in a ValueDecl or AssignStmt.
 func checkValDefineMismatch(n Node) {
